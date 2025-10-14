@@ -1,0 +1,35 @@
+version: '3'
+services:
+  web:
+    container_name: adres_web
+    build: .
+    command: python manage.py runserver 0.0.0:8282
+    restart: always
+    volumes:
+      - .:/app
+    ports:
+      - "8282:8282"
+    # networks:
+    #   - adres_auction_ntwk
+    networks:
+      # - frontend 
+      adres_auction_ntwk:
+        ipv4_address: 178.28.0.14
+
+  cache:
+    container_name: adres_web_redis
+    image: redis:7.2
+    command: redis-server
+    restart: always
+    ports:
+      - '6479:6479'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - adres_auction_ntwk
+ 
+networks:
+  adres_auction_ntwk:
+    name: adres_auction_network
+    driver: bridge
+    external: true

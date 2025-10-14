@@ -1,0 +1,77 @@
+{% load static %}
+
+<div class="table-responsive">
+<table class="table jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Video List List Table" role="table">
+    <thead>
+        <tr class="headings" role="row" style="white-space: nowrap;">
+            <th class="column-title" role="columnheader" scope="col">ID </th>
+            <th class="column-title" role="columnheader" scope="col">Title </th>
+            <th class="column-title" role="columnheader" scope="col">Video Url </th>
+            <th class="column-title"  role="columnheader" scope="col" style="width:10%">Domain </th>
+            {% comment %} <th class="column-title" role="columnheader" scope="col">Publish Date </th> {% endcomment %}
+            <th class="column-title" role="columnheader" scope="col">Status </th>
+            <th class="column-title no-link last" role="columnheader" scope="col" style="width:14%"><span class="nobr">Action</span>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% if data.total > 0 %}
+        {% for video in data.data %}
+        <tr class="even pointer" role="row" style="white-space: nowrap;">
+            <th class=" " role="columnheader" scope="col">{{ forloop.counter|add:start_index }}</th>
+            <td class=" " role="rowheader">
+                {{video.title|default:'-'}}
+            </td>
+            <td role="rowheader">
+                <a href="{{video.video_url}}" role="link" target="_blank" class="text-primary" >{{video.video_url}}</a>
+            </td>
+            <td role="rowheader">
+                {{video.domain_name|default:'-'}}
+            </td>
+            <td class=" " role="rowheader">
+                <a type="button" class="btn btn-xs btn-round {% if video.status_id|to_int == 1 %} btn-success {% elif video.status_id|to_int == 5 %} btn-danger {% else %} btn-warning {% endif %}" id="statusText{{video.id}}" role="button" aria-label="Status" tabindex="3">{{video.status}} </a> 
+            </td>
+            <td class="last" role="rowheader">
+                <div class="btn-toolbar" role="toolbar" style="display:inline-flex;">
+                    <button type="button" data-id="{{video.id}}" class="btn btn-xs btn-round btn-primary edit-video" role="button" aria-label="Edit video list" tabindex="4"><i class="fa fa-edit" aria-hidden="true" role="presentation"></i> Edit</button>
+                {% comment %} <form method="post" action="{% url 'admin-blog-status-change' %}" data-id="{{article.id}}" action="" class="ActiveInactive" >
+                    {% csrf_token %}
+                    <input type="hidden" name="article_id" value="{{article.id}}">
+                    <input type="hidden" class="status-change" name="status" value="{% if article.status == 1 %}2{% else %}1{% endif %}">
+                    {% if article.status == 1 %}
+                    <button type="submit" class="btn btn-xs btn-round btn-warning" role="button" aria-label="Deactivate" tabindex="5"><i class="fa fa-remove" aria-hidden="true" role="presentation"></i> Deactivate</button>
+                    {% else %}
+                    <button type="submit" class="btn btn-xs btn-round btn-success" role="button" aria-label="Activate" tabindex="6"><i class="fa fa-check" aria-hidden="true" role="presentation"></i> Activate</button>
+                    {% endif %}
+                </form> {% endcomment %}
+                </div>
+
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr role="row">  
+            <td class="" colspan="6" role="rowheader">No Video available </td>
+        </tr>
+    {% endif %}
+    
+    </tbody>
+</table>
+</div>
+
+{% if data.total > 0 %}
+<div class="pagination">
+    <ul >
+      {{pagination|safe}}
+    </ul>
+</div>
+{% endif %}
+
+{% block js_content %}
+  <script>
+  $(function() {
+      $('body').tooltip({selector: '[data-toggle="tooltip"]'});
+      $('#totalCount').html('{{data.total}}')
+  });
+  </script>
+{% endblock %}

@@ -1,0 +1,1279 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+    
+    <!-- <link rel="stylesheet" href="{% static 'admin/css/chosen.css' %}"> -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+  
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+{% if request.GET.property_id %}
+<div class="asset-detail-top">
+  <div class="row">
+    <div class="col-md-12">
+
+      <div class="item">
+        <div class="block">
+          {% if property_details.cover_image.0.doc_file_name %}
+          <figure>
+            <img src="{{ azure_blob_url }}{{ property_details.cover_image.0.bucket_name }}/{{ property_details.cover_image.0.doc_file_name }}" alt="real estate sales">
+          </figure>
+          {% endif %}
+          <h4>
+            <span>
+              {{ property_details.property_name|default:'' }}
+            </span>
+          </h4>
+          
+        </div><!-- End .block -->
+        <div class="block">
+          {% if property_details.seller_status == 29%}
+            <h6 class="retn">
+              Return Reason: {{property_details.seller_property_return_reason|default:""}}
+            </h6>
+          {% endif %}
+        </div>
+      </div><!-- End .item -->
+    </div>
+
+  </div>
+</div><!-- End .asset-detail-top -->
+{% endif %}
+<div class="dashboard-body">
+  <form name="property_info_frm" id="property_info_frm" method="post" autocomplete="off">
+    {% csrf_token %}
+        <input type="hidden" name="property_id" id="property_id" value="{{ request.GET.property_id }}" />
+        <input type="hidden" id="auctionId" value="{{ property_details.property_auction_data.0.id|default:'' }}" />
+        <input type="hidden" name="next_url" id="next_url" value="" />
+        <input type="hidden" name="step" id="step" value="3" />
+        <input type="hidden" name="account_verification_type" id="account_verification_type" value="{{request.session.account_verification_type}}" />
+        <div class="row">
+          <div class="col-md-12 col-sm-12">
+            <div class="table-heading">
+              <div class="item">
+                <h5>
+                  Add Listing
+                </h5>
+              </div>
+            </div>
+
+            
+            <!-- <h6>
+              Country & City
+            </h6> -->
+
+            <div class="prop-bdr">
+
+              <div class="row">
+                <div class="col-lg-6 col-md-6">
+                  <div class="form-group">
+                    <label for="prop_country">Country <span class="text-danger">*</span></label>
+                    <select class="prop_country form-control" aria-label="Country" name="prop_country" id="prop_country">
+                      <!-- <option value="">Select</option> -->
+                      {% for country in country_list %}
+                        {% if country.id == 4 %}
+                          <option value="{{ country.id }}" data-short-code="{{ country.alpha2_code }}" {% if country_id == country.id %} selected {% endif %}>{{ country.country_name }}</option>
+                        {% endif %}
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-lg-6 col-md-6">
+                  <div class="form-group">
+                    <label for="prop_city">City <span class="text-danger">*</span></label>
+                    <select class="prop_city form-control select" aria-label="City" name="prop_city" id="prop_city">
+                      <option value="">Select</option>
+                      {% for city in city_list %}
+                        <option value="{{ city.id }}" data-short-code="{{ city.iso_name }}" {% if property_details.state_id == city.id %} selected {% endif %}>{{ city.state_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bidder-accordian">
+                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                  <!-- <div class="panel panel-default panel-active"> -->
+                  <div class="panel panel-default"> 
+                    <div class="panel-heading" role="tab" id="headingTwo">
+                      <h4 class="panel-title">
+                          <a role="button" tabindex="7" data-toggle="collapse" data-parent="#accordion" data-href="collapseTwo" {% if request.GET.property_id %} href="#collapseTwo" {% endif %} aria-expanded="true" aria-controls="collapseTwo" class="collapsed" id="section_two">
+                            Ownership Info
+                            <span class="icon"></span>
+                          </a>
+                      </h4>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                      <div class="panel-body">
+                        <div class="row">
+                          <div class="col-md-12 col-sm-12">
+                            
+                            <input type="hidden" name="total_section" id="total_section" value="{{property_details.owners|length|default:1}}"/>
+                            <div class="owner_container">
+                              {% if property_details.owners|length%}
+                                {% for owners in property_details.owners %}
+                                  <div class="child_owner" id="child_owner_{{ forloop.counter0 }}">
+                                    <div class="row position-relative">
+                                      <div class="col-md-12">
+                                        <h6>
+                                          Owner #<span class="owner_count">{{ forloop.counter }}</span>
+                                        </h6>
+                                      </div>
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_name">Owner <span class="text-danger">*</span></label>
+                                          <input type="text" name="owner_name_{{ forloop.counter0 }}" id="owner_name_{{ forloop.counter0 }}" class="form-control owner_name" placeholder="Enter full name" value="{{owners.name}}"/>
+                                        </div>
+                                      </div>
+                                      <!-- {% if request.session.account_verification_type != 2 %}
+                                        <div class="col-lg-6 col-md-6">
+                                          <div class="form-group">
+                                            <label for="owner_eid">EID <span class="text-danger">*</span></label>
+                                            <input type="text" name="owner_eid_{{ forloop.counter0 }}" id="owner_eid_{{ forloop.counter0 }}" class="form-control owner_eid" required placeholder="Enter your EID Number" data-inputmask="'mask': '999-9999-9999999-9'" data-inputmask-clearincomplete="true" value="{{owners.eid}}" />
+                                          </div>
+                                        </div>
+                                      {% else %}
+                                        <div class="col-lg-6 col-md-6">
+                                          <div class="form-group">
+                                            <label for="owner_passport">Passport <span class="text-danger">*</span></label>
+                                            <input type="text" name="owner_passport_{{ forloop.counter0 }}" id="owner_passport_{{ forloop.counter0 }}" class="form-control owner_passport" required placeholder="Enter your passport number" value="{{owners.passport}}" />
+                                          </div>
+                                        </div>
+                                      {% endif %} -->
+
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group owner_eid_section">
+                                          <label for="owner_eid" class="label_text">EID <span class="text-danger">*</span></label>
+                                          <div class="vacancy-type">
+                                            <div class="check">
+                                              <input type="radio" class="css-radio type_eid" id="owner_eid_type_{{ forloop.counter0 }}" name="owner_eid_type_{{ forloop.counter0 }}" value="1" {% if owners.useEID == 'true'%} checked {% endif %}>
+                                              <label for="owner_eid_type_{{ forloop.counter0 }}" class="radio-label eid_label">EID</label>
+                                            </div>
+                                            <div class="check">
+                                              <input type="radio" class="css-radio type_passport" id="owner_eid_type_pass_{{ forloop.counter0 }}" name="owner_eid_type_{{ forloop.counter0 }}" value="0" {% if owners.useEID == 'false'%} checked {% endif %}>
+                                              <label for="owner_eid_type_pass_{{ forloop.counter0 }}" class="radio-label passport_label">Passport</label>
+                                            </div>
+                                          </div>
+                                          <input type="text" {% if owners.useEID == 'false'%} style="display: none;" {% endif %} name="owner_eid_{{ forloop.counter0 }}" id="owner_eid_{{ forloop.counter0 }}" class="form-control owner_eid" required placeholder="Enter your EID Number" data-inputmask="'mask': '999-9999-9999999-9'" data-inputmask-clearincomplete="true" value="{{owners.eid|default:''}}" />
+                                          <input type="text" {% if owners.useEID == 'true'%} style="display: none;" {% endif %} name="owner_passport_{{ forloop.counter0 }}" id="owner_passport_{{ forloop.counter0 }}" class="form-control owner_passport" required placeholder="Enter your Passport Number" value="{{owners.passport|default:''}}" />
+                                        </div>
+                                      </div>
+
+                                      <!-- <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_nationality">Nationality <span class="text-danger">*</span></label>
+                                          <input type="text" name="owner_nationality_{{ forloop.counter0 }}" id="owner_nationality__{{ forloop.counter0 }}" class="form-control owner_nationality" value="{{owners.nationality}}" placeholder="Enter Nationality">
+                                        </div>
+                                      </div> -->
+
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_nationality">Nationality <span class="text-danger">*</span></label>
+                                          <select name="owner_nationality_{{ forloop.counter0 }}" id="owner_nationality_{{ forloop.counter0 }}" class="select owner_nationality">
+                                            <option value="">Select Nationality</option>
+                                            {% for country in country_list %}
+                                              <option value="{{country.id}}" {% if owners.owner_nationality == country.id %} selected {% endif %}>{{country.country_name}}</option>
+                                            {% endfor %}
+                                          </select>
+                                        </div>
+                                      </div>
+
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_dob">DOB <span class="text-danger">*</span></label>
+                                          <input type="text" name="owner_dob_{{ forloop.counter0 }}" id="owner_dob_{{ forloop.counter0 }}" class="form-control owner_dob" value="{{owners.dob}}" placeholder="Enter DOB">
+                                        </div>
+                                      </div>
+
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_phone">Phone number <span class="text-danger">*</span></label>
+                                          <div class="ph-code">
+                                            <select name="phone_country_code" class="select">
+                                              <option value="971">+971</option>
+                                            </select>
+                                            <input type="number" name="owner_phone_{{ forloop.counter0 }}" id="owner_phone_{{ forloop.counter0 }}" class="form-control owner_phone" value="{{owners.phone}}" placeholder="Enter phone no">
+                                          </div>  
+                                        </div>
+                                      </div>
+  
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_email">Email ID <span class="text-danger">*</span></label>
+                                          <input type="text" name="owner_email_{{ forloop.counter0 }}" id="owner_email_{{ forloop.counter0 }}" class="form-control owner_email" value="{{owners.email}}" placeholder="Enter email">
+                                        </div>
+                                      </div>
+
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_percentage">Share Percentage <span class="text-danger">*</span></label>
+                                          <input type="number" name="owner_percentage_{{ forloop.counter0 }}" id="owner_percentage__{{ forloop.counter0 }}" class="form-control owner_percentage" value="{{owners.share_percentage}}" max="100" placeholder="Enter percentage">
+                                        </div>
+                                      </div>
+
+                                      <div class="remove-owner">
+                                        <a class="delete_child_owner" onclick="confirm_delete_date(this);"><i class="fa-solid fa-trash-can"></i></a>
+                                      </div>
+                                    </div>
+                                    
+                                  </div>
+                                {% endfor %}  
+                              {% else %}
+                                <div class="child_owner" id="child_owner_0">
+
+                                  <div class="row position-relative">
+                                    <div class="col-md-12">
+                                      <h6>
+                                        Owner #<span class="owner_count">1</span>
+                                      </h6>
+                                    </div>
+
+                                    <div class="col-lg-6 col-md-6">
+                                      <div class="form-group">
+                                        <label for="owner_name">Owner <span class="text-danger">*</span></label>
+                                        <input type="text" name="owner_name_0" id="owner_name_0" class="form-control owner_name" placeholder="Enter full name" value=""/>
+                                      </div>
+                                    </div>
+                                    <!-- {% if request.session.account_verification_type != 2 %}
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_eid">EID <span class="text-danger">*</span></label>
+                                          <input type="text" name="owner_eid_0" id="owner_eid_0" class="form-control owner_eid" required placeholder="Enter your EID Number" value="" data-inputmask="'mask': '999-9999-9999999-9'" data-inputmask-clearincomplete="true"/>
+                                        </div>
+                                      </div>
+                                    {% else %}
+                                      <div class="col-lg-6 col-md-6">
+                                        <div class="form-group">
+                                          <label for="owner_passport">Passport <span class="text-danger">*</span></label>
+                                          <input type="text" name="owner_passport_0" id="owner_passport_0" class="form-control owner_passport" required placeholder="Enter your passport number" value=""/>
+                                        </div>
+                                      </div>
+                                    {% endif %} -->
+                                    <div class="col-lg-6 col-md-6">
+                                      <div class="form-group owner_eid_section">
+                                        <label for="owner_eid" class="label_text">EID <span class="text-danger">*</span></label>
+                                        <div class="vacancy-type">
+                                          <div class="check">
+                                            <input type="radio" class="css-radio type_eid" id="owner_eid_type_0" name="owner_eid_type_0" value="1" checked>
+                                            <label for="owner_eid_type_0" class="radio-label eid_label">EID</label>
+                                          </div>
+                                          <div class="check">
+                                            <input type="radio" class="css-radio type_passport" id="owner_eid_type_pass_0" name="owner_eid_type_0" value="0">
+                                            <label for="owner_eid_type_pass_0" class="radio-label passport_label">Passport</label>
+                                          </div>
+                                        </div>
+                                        <input type="text" name="owner_eid_0" id="owner_eid_0" class="form-control owner_eid" required placeholder="Enter your EID Number" value="" data-inputmask="'mask': '999-9999-9999999-9'" data-inputmask-clearincomplete="true"/>
+                                        <input type="text" style="display: none;" name="owner_passport_0" id="owner_passport_0" class="form-control owner_passport" required placeholder="Enter your passport number" value=""/>
+                                      </div>
+                                    </div>
+
+                                    <!-- <div class="col-lg-6 col-md-6">
+                                      <div class="form-group">
+                                        <label for="owner_nationality">Nationality <span class="text-danger">*</span></label>
+                                        <input type="text" name="owner_nationality_0" id="owner_nationality_0" class="form-control owner_nationality" value="" placeholder="Enter Nationality">
+                                      </div>
+                                    </div> -->
+
+                                    <div class="col-lg-6 col-md-6">
+                                      <div class="form-group">
+                                        <label for="owner_nationality">Nationality <span class="text-danger">*</span></label>
+                                        <select name="owner_nationality_0" id="owner_nationality_0" class="select owner_nationality">
+                                          <option value="">Select Nationality</option>
+                                          {% for country in country_list %}
+                                            <option value="{{country.id}}">{{country.country_name}}</option>
+                                          {% endfor %}
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    <div class="col-lg-6 col-md-6">
+                                      <div class="form-group">
+                                        <label for="owner_dob">DOB <span class="text-danger">*</span></label>
+                                        <input type="text" name="owner_dob_0" id="owner_dob_0" class="form-control owner_dob" value="" placeholder="Enter DOB">
+                                      </div>
+                                    </div>
+
+                                    <div class="col-lg-6 col-md-6">
+                                      <div class="form-group">
+                                        <label for="owner_phone">Phone number <span class="text-danger">*</span></label>
+                                        <div class="ph-code">
+                                          <select name="phone_country_code" class="select">
+                                            <option value="971">+971</option>
+                                          </select>
+                                          <input type="number" name="owner_phone_0" id="owner_phone_0" class="form-control owner_phone" value="" placeholder="Enter phone no">
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div class="col-lg-6 col-md-6">
+                                      <div class="form-group">
+                                        <label for="owner_email">Email ID <span class="text-danger">*</span></label>
+                                        <input type="text" name="owner_email_0" id="owner_email_0" class="form-control owner_email" value="" placeholder="Enter email">
+                                      </div>
+                                    </div>
+
+                                    <div class="col-lg-6 col-md-6">
+                                      <div class="form-group">
+                                        <label for="owner_percentage">Share Percentage <span class="text-danger">*</span></label>
+                                        <input type="number" name="owner_percentage_0" id="owner_percentage_0" class="form-control owner_percentage" value="" max="100" placeholder="Enter percentage">
+                                      </div>
+                                    </div>
+
+                                    <div class="remove-owner delete_child_owner" style="display: none;">
+                                      <a class="clearfix" onclick="confirm_delete_date(this);"><i class="fa-solid fa-trash-can"></i></a>
+                                    </div>
+                                  </div>
+                                  
+                                </div>
+                              {% endif %}  
+                              <div class="clearfix">
+                                <a class="add_owner btn btn-primary">Add Owner <i class="fa-solid fa-plus"></i></a> <a class="btn btn-primary-bdr" id="section_two_next_button">Next</a>
+                              </div>
+                              
+                            </div>
+                            
+                          </div><!-- End .col-md-6 -->
+                          
+                        </div><!-- End .row -->
+                      </div><!-- End .panel-body -->
+                    </div><!-- End .panel-collapse -->
+                  </div><!-- End .panel -->
+
+                  <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingTwo">
+                        <h4 class="panel-title">
+                            <a class="collapsed" tabindex="8" role="button" data-toggle="collapse" data-parent="#accordion" data-href="collapseFive" {% if request.GET.property_id %} href="#collapseFive" {% endif %} aria-expanded="false" aria-controls="collapseFive" id="section_three">
+                              Property Details
+                              <span class="icon"></span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseFive" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <div class="panel-body">
+                            <div class="row">
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="municipality">Municipality <span class="text-danger">*</span></label>
+                                  <select class="municipality form-control select" aria-label="Municipality" name="municipality" id="municipality">
+                                    <option value="">Select City</option>
+                                    {% for muncip in municipality %}
+                                      <option value="{{ muncip.id }}" {% if property_details.municipality == muncip.id %} selected {% endif %}>{{ muncip.municipality_name }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="district">District <span class="text-danger">*</span></label>
+                                  <select class="district form-control select" aria-label="District" name="district" id="district">
+                                    <option value="">Select District</option>
+                                    {% for dist in district %}
+                                      <option value="{{ dist.id }}" {% if property_details.district == dist.id %} selected {% endif %}>{{ dist.district_name }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="project">Project</label>
+                                  <select class="project form-control select" aria-label="Project" name="project" id="project">
+                                    <option value="">Select Project</option>
+                                    {% for proj in project %}
+                                      <option value="{{ proj.id }}" {% if property_details.project == proj.id %} selected {% endif %}>{{ proj.project_name }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="property_name">Property Name <span class="text-danger">*</span></label>
+                                  <input class="form-control property_name" type="text" name="property_name" id="property_name" placeholder="Enter Property Name" value="{{property_details.property_name|default:''}}" />
+                                </div>
+                              </div>
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="property_name_ar">Property Name in Arabic <span class="text-danger">*</span></label>
+                                  <input class="form-control property_name_ar" type="text" name="property_name_ar" id="property_name_ar" placeholder="Enter Property Name in Arabic" value="{{property_details.property_name_ar|default:''}}" />
+                                </div>
+                              </div>
+                              <div class="col-lg-6 col-md-6 community_text" {% if property_details.state_id == 83 %} style="display: none;" {% endif %}>
+                                <div class="form-group">
+                                  <label for="community">Community <span class="text-danger">*</span></label>
+                                  <input class="form-control community" type="text" name="community" id="community" placeholder="Enter Community" value="{{property_details.community|default:''}}" />
+                                </div>
+                              </div>
+                              
+                              <div class="col-lg-6 col-md-6 community_dropdown" {% if property_details.state_id != 83 %} style="display: none;" {% endif %}>
+                                <div class="form-group">
+                                  <label for="commuiy">Community <span class="text-danger">*</span></label>
+                                  <select class="community_data form-control select" aria-label="Community" name="community_data" id="community_data">
+                                    <option value="">Select Community</option>
+                                    {% for com in community %}
+                                      <option value="{{ com.community_name }}" {% if property_details.community == com.community_name %} selected {% endif %}>{{ com.community_name }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="property_type">Property Type <span class="text-danger">*</span></label>
+                                  <select class="property_type form-control select" aria-label="Property Type" name="property_type" id="property_type">
+                                    <option value="">Select Property Type</option>
+                                    {% for prop_type in property_type %}
+                                      <option value="{{ prop_type.id }}" {% if property_details.property_type == prop_type.id %} selected {% endif %}>{{ prop_type.property_type }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div>
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="project">Building <span class="text-danger">*</span></label>
+                                  <input class="form-control building" type="text" name="building" id="building" placeholder="Enter building name or number" value="{{property_details.building|default:''}}" />
+                                </div>
+                              </div>
+
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="map_url">Map Url <span class="text-danger">*</span></label>
+                                  <input class="form-control map_url" type="text" name="map_url" id="map_url" placeholder="Enter map url" value="{{property_details.map_url|default:''}}" />
+                                </div>
+                              </div>
+
+                              <div class="clearfix col-md-12">
+                                <a class="btn btn-primary-bdr" id="section_three_next_button">Next</a>
+                              </div>
+
+                            </div><!-- End .row -->
+                        </div><!-- End .panel-body -->
+                    </div><!-- End .panel-collapse -->
+                  </div><!-- End .panel -->
+
+                  <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingTwo">
+                        <h4 class="panel-title">
+                            <a class="collapsed property_exterior" tabindex="10" role="button" data-toggle="collapse" data-parent="#accordion" data-href="collapsefour" {% if request.GET.property_id %} href="#collapsefour" {% endif %} aria-expanded="false" aria-controls="collapsefour" id="section_four">
+                              Property Features
+                              <span class="icon"></span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapsefour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <div class="panel-body">
+                            <div class="row">
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="area_size">Area Size(sq ft) <span class="text-danger">*</span></label>
+                                  <input type="number" name="area_size" placeholder="Enter area size(sq ft)" min="0" class="form-control" id="area_size" value="{{property_details.square_footage|default:''}}" />
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="number_beds">Number of Bedrooms <span class="text-danger">*</span></label>
+                                  <select name="number_beds" aria-label="number_beds" id="number_beds" class="select form-control">
+                                    <option value="0" {% if property_details.beds == 0 %} selected {% endif%}><i class="fa fa-plus" aria-hidden="true" role="presentation"></i> Studio</option>
+                                    {% for bedroom in number_bedrooms %}
+                                      <option value="{{ bedroom.id }}" {% if property_details.beds == bedroom.id%} selected {% endif %}>{{ bedroom.value }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="number_bathrooms">Number of Bathrooms <span class="text-danger">*</span></label>
+                                  <select name="number_bathrooms" aria-label="number_bathrooms" id="number_bathrooms" class="select form-control">
+                                    <option value=""><i class="fa fa-plus" aria-hidden="true" role="presentation"></i> Select Bathrooms</option>
+                                    {% for bathroom in number_bathrooms %}
+                                      <option value="{{ bathroom.id }}" {% if property_details.baths == bathroom.id%} selected {% endif %}>{{ bathroom.value }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="number_parkings">Number of Parkings <span class="text-danger">*</span></label>
+                                  <select name="number_parkings" aria-label="number_parkings" id="number_parkings" class="select form-control">
+                                    <option value=""><i class="fa fa-plus" aria-hidden="true" role="presentation"></i> Select Parkings</option>
+                                    {% for parking in number_parkings %}
+                                      <option value="{{ parking.id }}" {% if property_details.number_of_outdoor_parking_spaces == parking.id%} selected {% endif %}>{{ parking.value }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="vacancy">Vacancy <span class="text-danger">*</span></label>
+
+                                  <div class="clearfix">
+                                    <input type="radio" class="vacancy css-radio" id="rented" name="vacancy" value="1" {% if property_details.vacancy %}{% if property_details.vacancy == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %}>
+                                    <label for="rented" class="radio-label">Rented</label>
+                                    &nbsp; 
+                                    <input type="radio" class="vacancy css-radio" id="vacancy" name="vacancy" value="2" {% if property_details.vacancy == 2 %}checked="checked"{% endif %}>
+                                    <label for="vacancy" class="radio-label">Vacant</label>
+                                  </div>
+                                </div>
+
+                                <div class="rental_till_parent" {% if property_details.vacancy == 2 %} style="display: none;" {% else %} style="display: block;" {% endif %}>
+                                  <div class="form-group">
+                                    <label for="rental_till" class="rental_till_class">Rented Till <span class="text-danger">*</span></label>
+                                    <input type="text" name="rental_till" class="form-control" id="rental_till" value="{{property_details.rental_till|default:""}}" placeholder="Enter Date" />
+                                  </div>
+                                </div><!-- End .col-md-6 -->
+
+                              </div><!-- End .col-md-6 -->
+
+                              
+
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="Construction Status">Construction Status <span class="text-danger">*</span></label>
+                                  <select name="construction_status" aria-label="Construction Status" id="construction_status" class="select form-control">
+                                    <option value=""><i class="fa fa-plus" aria-hidden="true" role="presentation"></i> Select Status</option>
+                                    {% for cons_status in construction_status %}
+                                      <option value="{{ cons_status.id }}" {% if property_details.construction_status == cons_status.id %} selected {% endif %}>{{ cons_status.status_name }}</option>
+                                    {% endfor %}
+                                  </select>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                  <label for="amenities">Amenities <span class="text-danger">*</span></label>
+                                  <select name="property_amenities" aria-label="property_amenities" id="property_amenities" class="select form-control new_feature_dropdown" data-placeholder="Select" multiple>
+                                    <!-- <option value="">Select Amanities</option> -->
+                                    {% if amenities_list %}
+                                        {% for amenities in amenities_list %}
+                                          <option value="{{ amenities.id }}" {% if amenities.id in property_details.amenities %}selected{% endif %}>{{ amenities.name }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                  </select>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                  <label for="amenities">Property Tags </label>
+                                  <select name="property_tags" aria-label="Property Tags" id="property_tags" class="select form-control new_feature_dropdown" data-placeholder="Select" multiple>
+                                    {% if tags %}
+                                        {% for tag in tags %}
+                                          <option value="{{ tag.id }}" {% if tag.id in property_details.tags %}selected{% endif %}>{{ tag.tag }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                  </select>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                  <label for="description">Description <span class="text-danger">*</span></label>
+                                  <div class="des-input">
+                                    <textarea name="description" class="form-control" id="Description" placeholder="Property Description">{{property_details.description|default:""}}</textarea>
+                                  </div>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-12 col-sm-12">
+                                <div class="form-group">
+                                  <label for="description_ar">Description in Arabic<span class="text-danger">*</span></label>
+                                  <div class="des-input">
+                                    <textarea name="description_ar" class="form-control" id="description_ar" placeholder="Property Description In Arabic">{{property_details.description_ar|default:""}}</textarea>
+                                  </div>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="clearfix col-md-12">
+                                <a class="btn btn-primary-bdr" id="section_four_next_button">Next</a>
+                              </div>
+
+                            </div><!-- End .row -->
+                        </div><!-- End .panel-body -->
+                    </div><!-- End .panel-collapse -->
+                  </div><!-- End .panel -->
+
+                  <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingTwo">
+                        <h4 class="panel-title">
+                            <a class="collapsed uploads" tabindex="10" role="button" data-toggle="collapse" data-parent="#accordion" data-href="collapsesix" {% if request.GET.property_id %} href="#collapsesix" {% endif %} aria-expanded="false" aria-controls="collapsesix" id="section_five">
+                              Uploads
+                              <span class="icon"></span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapsesix" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <div class="panel-body">
+                            <div class="deed">
+                              <label>
+                                <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Title Deed<span class="text-danger">*</span>
+                              </label>
+                              <div class="upload-fav">
+                                <div class="item">
+                                  <div class="dropzone" id="propertyDeedFrm">
+                                      <input type="hidden" id="property_deed_id" name="property_deed_id" value="{{ property_details.deed_image_ids|default:'' }}"/>
+                                        <input type="hidden" name="property_deed_name" id="property_deed_name" value="{{ property_details.deed_image_name|default:'' }}"/>
+                                        <div class="dz-default dz-message" data-dz-message="">
+                                          <div class="block">
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                          </div>
+                                          <div class="block">
+                                            or
+                                          </div>
+                                          <div class="block">
+                                            <h6>
+                                              Drag & Drop Docs
+                                              <span>Supported Files: jpg, jpeg, png, pdf</span>
+                                            </h6>
+                                          </div>
+                                        </div>
+                                  </div>
+                                </div>
+                                <div class="item">
+                                  <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                    <span class="tooltipp__content">Allowed file types are jpg, jpeg, png. Preferred image size is 617*414 px.</span>
+                                  </div>
+                                </div>
+                              </div><!-- End .uplaod-fav -->
+                              <p id="custom_property_deed_error"  class="custom_image_error" style="display:none;">Image is required.</p>
+                              <label>
+                                Primary photos
+                                <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                  <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
+                                </div>
+                              </label>
+      
+                              <div class="image-show-list" id="PropertyDeedDiv" style="{% if property_details.deed_image|length > 0 %}{% else %}display:none;{% endif %}">
+                                <ul id="propertyDeedList">
+                                  {% for item in property_details.deed_image %}
+                                  <li rel_id="{{ item.upload_id }}" rel_position="{{ forloop.counter }}">
+                                    <a href="javascript:void(0)" data-article-id="{{ property_details.id }}" data-image-id="{{ item.upload_id }}" data-image-name="{{ item.doc_file_name }}" data-image-section="{{ item.bucket_name }}"  class="close-btn confirm_image_delete"><i class="fas fa-times" aria-hidden="true" role="presentation"></i></a>
+                                    <!-- <img src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales"> -->
+                                    {% if item.doc_file_name and item.doc_file_name|is_pdf %}
+                                    <figure>
+                                      <a href="{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}" target="_blank">
+                                        <img class="slide-fixed" src="{% static 'admin/images/transparent.png' %}" alt="real estate sales">
+                                        <img class="slide-img" src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                      </a>
+                                      </figure>
+                                    {% else %}
+                                    <figure>
+                                      <img class="slide-fixed" src="{% static 'admin/images/transparent.png' %}" alt="real estate sales">
+                                      <img class="slide-img" src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                    </figure>
+                                    {% endif %}
+                                    <figcaption>
+                                      <h6>
+                                        {{ item.doc_file_name }}
+                                      </h6>
+                                      <p class="size_date_sec" data-file-size="{{ item.file_size }}" data-added-date="{{ item.added_on }}">
+                                        File Size: {{ item.file_size }} <br>
+                                        Uploaded: {{ item.added_on|parse_iso|date:'M j, Y h:i:sa' }}
+                                      </p>
+                                      <!-- <textarea id="photo_description_{{ forloop.counter }}" name="photo_description_{{ forloop.counter }}" rows="4" cols="20">{% if item.photo_description != None %}{{item.photo_description}}{% endif %}</textarea> -->
+                                      <!-- <div class="move">
+                                        <i class="fas fa-expand-arrows-alt" aria-hidden="true" role="presentation"></i> Move
+                                      </div> -->
+                                    </figcaption>
+                                  </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                            </div><!-- End .deed -->
+
+                            <div class="floor_plan">
+                              <label>
+                                <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Floor Plans
+                              </label>
+                              <div class="upload-fav">
+                                <div class="item">
+                                  <div class="dropzone" id="propertyFloorPlanFrm">
+                                      <input type="hidden" id="property_floor_plan_id" name="property_floor_plan_id" value="{{ property_details.floor_plans_image_ids|default:'' }}"/>
+                                        <input type="hidden" name="property_floor_plan_name" id="property_floor_plan_name" value="{{ property_details.floor_plans_image_name|default:'' }}"/>
+                                        <div class="dz-default dz-message" data-dz-message="">
+                                          <div class="block">
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                          </div>
+                                          <div class="block">
+                                            or
+                                          </div>
+                                          <div class="block">
+                                            <h6>
+                                              Drag & Drop Docs
+                                              <span>Supported Files: jpg, jpeg, png, pdf</span>
+                                            </h6>
+                                          </div>
+                                        </div>
+                                  </div>
+                                </div>
+                                <div class="item">
+                                  <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                    <span class="tooltipp__content">Allowed file types are jpg, jpeg, png. Preferred image size is 617*414 px.</span>
+                                  </div>
+                                </div>
+                              </div><!-- End .uplaod-fav -->
+                              <p id="custom_property_floor_plan_error"  class="custom_image_error" style="display:none;">Image is required.</p>
+                              <label>
+                                Primary photos
+                                <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                  <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
+                                </div>
+                              </label>
+      
+                              <div class="image-show-list" id="PropertyFloorPlanDiv" style="{% if property_details.floor_plans_image|length > 0 %}{% else %}display:none;{% endif %}">
+                                <ul id="propertyFloorPlanList">
+                                  {% for item in property_details.floor_plans_image %}
+                                  <li rel_id="{{ item.upload_id }}" rel_position="{{ forloop.counter }}">
+                                    <a href="javascript:void(0)" data-article-id="{{ property_details.id }}" data-image-id="{{ item.upload_id }}" data-image-name="{{ item.doc_file_name }}" data-image-section="{{ item.bucket_name }}"  class="close-btn confirm_image_delete"><i class="fas fa-times" aria-hidden="true" role="presentation"></i></a>
+                                    {% if item.doc_file_name and item.doc_file_name|is_pdf %}
+                                      <a href="{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}" target="_blank">
+                                        <img src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                      </a>
+                                    {% else %}
+                                    <figure>
+                                      <img class="slide-fixed" src="{% static 'admin/images/transparent.png' %}" alt="real estate sales">
+                                      <img class="slide-img" src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                    </figure>
+                                      {% endif %}
+                                    <figcaption>
+                                      <h6>
+                                        {{ item.doc_file_name }}
+                                      </h6>
+                                      <p class="size_date_sec" data-file-size="{{ item.file_size }}" data-added-date="{{ item.added_on }}">
+                                        File Size: {{ item.file_size }} <br>
+                                        Uploaded: {{ item.added_on|parse_iso|date:'M j, Y h:i:sa' }}
+                                      </p>
+                                      <!-- <textarea id="photo_description_{{ forloop.counter }}" name="photo_description_{{ forloop.counter }}" rows="4" cols="20">{% if item.photo_description != None %}{{item.photo_description}}{% endif %}</textarea> -->
+                                      <!-- <div class="move">
+                                        <i class="fas fa-expand-arrows-alt" aria-hidden="true" role="presentation"></i> Move
+                                      </div> -->
+                                    </figcaption>
+                                  </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                            </div><!-- End .floor plan -->
+
+                            <div class="cover_image">
+                              <label>
+                                <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Cover Image<span class="text-danger">*</span>
+                              </label>
+                              <div class="upload-fav">
+                                <div class="item">
+                                  <div class="dropzone" id="propertyCoverImageFrm">
+                                      <input type="hidden" id="property_cover_image_id" name="property_cover_image_id" value="{{ property_details.cover_image_ids|default:'' }}"/>
+                                        <input type="hidden" name="property_cover_image_name" id="property_cover_image_name" value="{{ property_details.cover_image_name|default:'' }}"/>
+                                        <div class="dz-default dz-message" data-dz-message="">
+                                          <div class="block">
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                          </div>
+                                          <div class="block">
+                                            or
+                                          </div>
+                                          <div class="block">
+                                            <h6>
+                                              Drag & Drop Docs
+                                              <span>Supported Files: jpg, jpeg, png</span>
+                                            </h6>
+                                          </div>
+                                        </div>
+                                  </div>
+                                </div>
+                                <div class="item">
+                                  <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                    <span class="tooltipp__content">Allowed file types are jpg, jpeg, png. Preferred image size is 617*414 px.</span>
+                                  </div>
+                                </div>
+                              </div><!-- End .uplaod-fav -->
+                              <p id="custom_property_cover_image_error"  class="custom_image_error" style="display:none;">Image is required.</p>
+                              <label>
+                                Primary photos
+                                <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                  <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
+                                </div>
+                              </label>
+      
+                              <div class="image-show-list" id="PropertyCoverImageDiv" style="{% if property_details.cover_image|length > 0 %}{% else %}display:none;{% endif %}">
+                                <ul id="propertyCoverImageList">
+                                  {% for item in property_details.cover_image %}
+                                  <li rel_id="{{ item.upload_id }}" rel_position="{{ forloop.counter }}">
+                                    <a href="javascript:void(0)" data-article-id="{{ property_details.id }}" data-image-id="{{ item.upload_id }}" data-image-name="{{ item.doc_file_name }}" data-image-section="{{ item.bucket_name }}"  class="close-btn confirm_image_delete"><i class="fas fa-times" aria-hidden="true" role="presentation"></i></a>
+                                    <!-- <img src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales"> -->
+                                    {% if item.doc_file_name and item.doc_file_name|is_pdf %}
+                                      <a href="{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}" target="_blank">
+                                        <img src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                      </a>
+                                    {% else %}
+                                    <figure>
+                                      <img class="slide-fixed" src="{% static 'admin/images/transparent.png' %}" alt="real estate sales">
+                                      <img class="slide-img" src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                      </figure>
+                                      {% endif %}
+                                    <figcaption>
+                                      <h6>
+                                        {{ item.doc_file_name }}
+                                      </h6>
+                                      <p class="size_date_sec" data-file-size="{{ item.file_size }}" data-added-date="{{ item.added_on }}">
+                                        File Size: {{ item.file_size }} <br>
+                                        Uploaded: {{ item.added_on|parse_iso|date:'M j, Y h:i:sa' }}
+                                      </p>
+                                      <!-- <textarea id="photo_description_{{ forloop.counter }}" name="photo_description_{{ forloop.counter }}" rows="4" cols="20">{% if item.photo_description != None %}{{item.photo_description}}{% endif %}</textarea> -->
+                                      <!-- <div class="move">
+                                        <i class="fas fa-expand-arrows-alt" aria-hidden="true" role="presentation"></i> Move
+                                      </div> -->
+                                    </figcaption>
+                                  </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                            </div><!-- End .cover image -->
+
+                            <div class="property_image">
+                              <label>
+                                <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Property Images(Minimun 5 images required.)<span class="text-danger">*</span>
+                              </label>
+                              <div class="upload-fav">
+                                <div class="item">
+                                  <div class="dropzone" id="propertyImageFrm">
+                                      <input type="hidden" id="property_image_id" name="property_image_id" value="{{ property_details.property_image_ids|default:'' }}"/>
+                                        <input type="hidden" name="property_image_name" id="property_image_name" value="{{ property_details.property_image_name|default:'' }}"/>
+                                        <div class="dz-default dz-message" data-dz-message="">
+                                          <div class="block">
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                          </div>
+                                          <div class="block">
+                                            or
+                                          </div>
+                                          <div class="block">
+                                            <h6>
+                                              Drag & Drop Docs
+                                              <span>Supported Files: jpg, jpeg, png</span>
+                                            </h6>
+                                          </div>
+                                        </div>
+                                  </div>
+                                </div>
+                                <div class="item">
+                                  <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                    <span class="tooltipp__content">Allowed file types are jpg, jpeg, png. Preferred image size is 617*414 px.</span>
+                                  </div>
+                                </div>
+                              </div><!-- End .uplaod-fav -->
+                              <p id="custom_property_image_error"  class="custom_image_error" style="display:none;">Image is required.</p>
+                              <label>
+                                Primary photos
+                                <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                  <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
+                                </div>
+                              </label>
+      
+                              <div class="image-show-list" id="PropertyImageDiv" style="{% if property_details.property_image|length > 0 %}{% else %}display:none;{% endif %}">
+                                <ul id="propertyImageList">
+                                  {% for item in property_details.property_image %}
+                                  <li rel_id="{{ item.upload_id }}" rel_position="{{ forloop.counter }}">
+                                    <a href="javascript:void(0)" data-article-id="{{ property_details.id }}" data-image-id="{{ item.upload_id }}" data-image-name="{{ item.doc_file_name }}" data-image-section="{{ item.bucket_name }}"  class="close-btn confirm_image_delete"><i class="fas fa-times" aria-hidden="true" role="presentation"></i></a>
+                                    <!-- <img src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales"> -->
+                                    {% if item.doc_file_name and item.doc_file_name|is_pdf %}
+                                      <a href="{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}" target="_blank">
+                                        <img src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                      </a>
+                                    {% else %}
+                                    <figure>
+                                      <img class="slide-fixed" src="{% static 'admin/images/transparent.png' %}" alt="real estate sales">
+                                      <img class="slide-img" src="{% if item.doc_file_name and not item.doc_file_name|is_pdf %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% elif item.doc_file_name and item.doc_file_name|is_pdf %}{% static 'admin/images/pdf_image.svg' %}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                                      </figure>
+                                      {% endif %}
+                                    <figcaption>
+                                      <h6>
+                                        {{ item.doc_file_name }}
+                                      </h6>
+                                      <p class="size_date_sec" data-file-size="{{ item.file_size }}" data-added-date="{{ item.added_on }}">
+                                        File Size: {{ item.file_size }} <br>
+                                        Uploaded: {{ item.added_on|parse_iso|date:'M j, Y h:i:sa' }}
+                                      </p>
+                                      <!-- <textarea id="photo_description_{{ forloop.counter }}" name="photo_description_{{ forloop.counter }}" rows="4" cols="20">{% if item.photo_description != None %}{{item.photo_description}}{% endif %}</textarea> -->
+                                      <!-- <div class="move">
+                                        <i class="fas fa-expand-arrows-alt" aria-hidden="true" role="presentation"></i> Move
+                                      </div> -->
+                                    </figcaption>
+                                  </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                            </div><!-- End .property image -->
+
+                            <div class="property_video">
+                              <label>
+                                <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Video 
+                              </label>
+                              <div class="upload-fav">
+                                <div class="item">
+                                  <div class="dropzone" id="propertyVideoFrm">
+                                      <input type="hidden" id="property_video_id" name="property_video_id" value="{{ property_details.property_video_ids|default:'' }}"/>
+                                        <input type="hidden" name="property_video_name" id="property_video_name" value="{{ property_details.property_video_name|default:'' }}"/>
+                                        <div class="dz-default dz-message" data-dz-message="">
+                                          <div class="block">
+                                            <button type="button" class="btn btn-white"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Video</button>
+                                          </div>
+                                          <div class="block">
+                                            or
+                                          </div>
+                                          <div class="block">
+                                            <h6>
+                                              Drag & Drop Docs
+                                              <span>Supported Files: mp4</span>
+                                            </h6>
+                                          </div>
+                                        </div>
+                                  </div>
+                                </div>
+                                <div class="item">
+                                  <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                    <span class="tooltipp__content">Allowed file types are mp4. Preferred image size is 617*414 px.</span>
+                                  </div>
+                                </div>
+                              </div><!-- End .uplaod-fav -->
+                              <p id="custom_property_video_error"  class="custom_image_error" style="display:none;">Image is required.</p>
+
+                              <label>
+                                Primary Video
+                                <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                                  <span class="tooltipp__content right">Drag and drop video to change their order.</span>
+                                </div>
+                              </label>
+      
+                              <div class="image-show-list" id="PropertyVideoDiv" style="{% if property_details.property_video|length > 0 %}{% else %}display:none;{% endif %}">
+                                <ul id="propertyVideoList">
+                                  {% for item in property_details.property_video %}
+                                  <li rel_id="{{ item.upload_id }}" rel_position="{{ forloop.counter }}">
+                                    <a href="javascript:void(0)" data-article-id="{{ property_details.id }}" data-image-id="{{ item.upload_id }}" data-image-name="{{ item.doc_file_name }}" data-image-section="{{ item.bucket_name }}"  class="close-btn confirm_image_delete"><i class="fas fa-times" aria-hidden="true" role="presentation"></i></a>
+                                    <video width="190" height="135" controls><source src="{% if item.doc_file_name %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% endif %}" type="video/mp4"></video>
+                                    <!-- <img src="{% if item.doc_file_name %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales"> -->
+                                    <figcaption>
+                                      <h6>
+                                        {{ item.doc_file_name }}
+                                      </h6>
+                                      <p class="size_date_sec" data-file-size="{{ item.file_size }}" data-added-date="{{ item.added_on }}">
+                                        File Size: {{ item.file_size }} <br>
+                                        Uploaded: {{ item.added_on|parse_iso|date:'M j, Y h:i:sa' }}
+                                      </p>
+                                      <!-- <textarea id="photo_description_{{ forloop.counter }}" name="photo_description_{{ forloop.counter }}" rows="4" cols="20">{% if item.photo_description != None %}{{item.photo_description}}{% endif %}</textarea> -->
+                                      <!-- <div class="move">
+                                        <i class="fas fa-expand-arrows-alt" aria-hidden="true" role="presentation"></i> Move
+                                      </div> -->
+                                    </figcaption>
+                                  </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                            </div><!-- End .property video -->
+
+                            <div class="clearfix">
+                              <a class="btn btn-primary-bdr" id="section_five_next_button">Next</a>
+                            </div>
+
+
+                        </div><!-- End .panel-body -->
+                    </div><!-- End .panel-collapse -->
+                  </div><!-- End .panel -->
+
+                  <!-- <input type="hidden" id="owner_user_type" value="{% if property_details.user_type %}{{property_details.user_type}}{% else %}2{% endif %}" />
+                  <input type="hidden" id="property_seller_status" value="{% if property_details.seller_status %}{{property_details.seller_status}}{% else %}27{% endif %}" /> -->
+                  {% if property_details.user_type == 2 or property_details.user_type == 4 or not property_details.user_type or property_details.seller_status == '27' or property_details.seller_status == 27 or 1 %}
+                    <div class="panel panel-default">
+                      <div class="panel-heading" role="tab" id="headingSeven">
+                        <h4 class="panel-title">
+                            <a role="button" tabindex="7" data-toggle="collapse" data-parent="#accordion" data-href="collapseSeven" {% if request.GET.property_id%} href="#collapseSeven" {% endif %} aria-expanded="true" aria-controls="collapseSeven" class="collapsed" id="section_six">
+                              Auction Details
+                              <span class="icon"></span>
+                            </a>
+                        </h4>
+                      </div>
+                      <div id="collapseSeven" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSeven">
+                        <div class="panel-body">
+                          <div class="row">
+                            <div class="col-md-12 col-sm-12">
+                              <div class="form-group">
+                                <div class="row">
+                                  <div class="col-lg-6 col-md-6">
+                                    <div class="form-group">
+                                      <label for="start_price">Auction Type {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                      <div class="aedprefix">
+                                        <select class="start_price form-control select" aria-label="Auction Type" name="auction_type" id="auction_type">
+                                          <option value="">Select Auction Type</option>
+                                          <option value="1" {% if property_details.property_for == 1 %} selected {% endif %}>Regular</option>
+                                          <option value="2" {% if property_details.property_for == 2 %} selected {% endif %}>Live</option>
+                                        </select>
+                                        </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-lg-6 col-md-6">
+                                    <div class="form-group">
+                                      <label for="start_price">Min Starting Price {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                      <div class="aedprefix">
+                                        <span class="aed">AED</span>
+                                        <input type="text" class="form-control" name="start_price" id="start_price" value="{{ property_details.start_price|convert_num|intcomma|default:'' }}" placeholder="Enter starting price" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                        </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-lg-6 col-md-6">
+                                    <div class="form-group">
+                                      <label for="deposit_amount">Deposit Price {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                      <div class="aedprefix">
+                                        <span class="aed">AED</span>
+                                        <input type="text" class="form-control" name="deposit_amount" id="deposit_amount" value="{% if property_details.deposit_amount %}{{ property_details.deposit_amount|convert_num|intcomma|default:'' }}{% endif %}" placeholder="Enter deposit amount" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                        </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-lg-6 col-md-6">
+                                    <div class="form-group">
+                                      <label for="reserve_amount">Reserved Price {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                      <div class="aedprefix">
+                                        <span class="aed">AED</span>
+                                        <input type="text" class="form-control" name="reserve_amount" id="reserve_amount" value="{{ property_details.reserve_amount|convert_num|intcomma|default:'' }}" placeholder="Enter reserve amount" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                        </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                      <label for="buyer_preference">Buyer Preference {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+      
+                                      <ul class="buyer-ref-list clearfix lh46">
+                                        <li>
+                                          <label for="cash" class="">Cash</label>
+                                          <input type="radio" class="buyer_preference custom-input" id="cash" name="buyer_preference" value="1" {% if property_details.buyer_preference %}{% if property_details.buyer_preference == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %}>
+                                        </li>
+                                        <li>
+                                          <label for="mortgage" class="">Mortgage</label>
+                                          <input type="radio" class="buyer_preference custom-input" id="mortgage" name="buyer_preference" value="2" {% if property_details.buyer_preference == 2 %}checked="checked"{% endif %}>
+                                        </li>
+                                        <li>
+                                          <label for="both" class="">Both</label>
+                                          <input type="radio" class="buyer_preference custom-input" id="both" name="buyer_preference" value="3" {% if property_details.buyer_preference == 3 %}checked="checked"{% endif %}>
+                                        </li>
+                                      </ul>
+
+                                    </div>
+                                  </div><!-- End .col-md-6 -->
+
+                                  <div class="col-md-12 col-sm-12">
+                                  
+                                      <div class="form-group">
+                                        <div class="full-price">
+                                            <label for="sell_at_full_amount_status">Sell at full price</label>
+                                            <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
+                                              <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
+                                              <span class="slide round"></span>
+                                            </label>
+                                            <!-- <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %}>
+                                            <label for="sell_at_full_amount_status" class="check-label">Sell at full price </label> -->
+                                          </div>
+                                          <p class="light-text mb0">
+                                            Enable this option to sell the property immediately at your desired full price without waiting for further bids.
+                                          </p>
+                                      </div>
+
+                                      <div class="row form-group full_price_field" {% if property_details.sell_at_full_amount_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+                                        <div class="col-md-6 col-sm-6">
+                                          <label for="full_amount">Full Price {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                          <input type="text" class="form-control" name="full_amount" id="full_amount" value="{{ property_details.full_amount|convert_num|intcomma|default:'' }}" placeholder="Enter full price" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                          
+                                        </div>
+                                      </div>
+                                    
+                                  </div>
+
+                                  <hr>
+                                  
+                                  <div class="col-md-12 col-sm-12">
+                                    <div class="row form-group bid_increment_field">
+                                      <div class="col-md-6 col-sm-6">
+                                        <label for="bid_increments">Bid Increment Price {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                        <input type="text" class="form-control" name="bid_increments" id="bid_increments" value="{{ property_details.bid_increments|convert_num|intcomma|default:'' }}" placeholder="Enter bid price" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
+                                      </div>
+                                    </div>
+                                    
+                                  </div><!-- End .col-md-6 -->
+
+                                  <hr>
+
+                                  <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                      <label for="start_date" class="start_date">Starting Date & Time {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                      <input type="text" name="start_date" class="form-control" id="start_date" value="{{property_details.start_date|default:''}}" {% if request.GET.property_id and property_details.status_id != 1 %} disabled {% endif %} placeholder="Please enter start date" />
+                                      <input type="hidden" name="utc_start_date" class="form-control" id="utc_start_date" value="{{property_details.start_date|default:''}}" />
+                                    </div>
+                                  </div><!-- End .col-md-6 -->
+
+                                  <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                      <label for="end_date" class="start_date">Ending Date & Time {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger"></span>{% endif %}</label>
+                                      <input type="text" name="end_date" class="form-control" id="end_date" value="{{property_details.end_date|default:''}}" {% if request.GET.property_id and property_details.status_id != 1 %} disabled {% endif %} placeholder="Please enter end date" />
+                                      <input type="hidden" name="utc_end_date" class="form-control" id="utc_end_date" value="{{property_details.end_date|default:''}}" />
+                                    </div>
+                                  </div><!-- End .col-md-6 -->
+
+                                  <div class="col-md-6 col-sm-6">
+                                    <div class="form-group">
+                                      <label for="is_featured">Would you like to feature your property? {% if property_details.user_type == 2 or not property_details.user_type %}<span class="text-danger">*</span>{% endif %}</label>
+      
+                                      <div class="clearfix">
+                                        <input type="radio" class="is_featured css-radio" id="is_featured_yes" name="is_featured" value="1" {% if property_details.is_featured %}{% if property_details.is_featured == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %}>
+                                        <label for="is_featured_yes" class="radio-label">Yes</label>
+                                        &nbsp; 
+                                        <input type="radio" class="is_featured css-radio" id="is_featured_no" name="is_featured" value="0" {% if property_details.is_featured != 1 %}checked="checked"{% endif %}>
+                                        <label for="is_featured_no" class="radio-label">No</label>
+                                      </div>
+                                    </div>
+                                  </div><!-- End .col-md-6 -->
+                                  <div class="clearfix col-md-12">
+                                    <a class="btn btn-primary-bdr" id="section_six_next_button">Next</a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div><!-- End .col-md-6 -->
+                            <div class="col-md-6 col-sm-6">
+                              &nbsp;
+                            </div><!-- End .col-md-6 -->
+
+                          </div><!-- End .row -->
+                        </div><!-- End .panel-body -->
+                      </div><!-- End .panel-collapse -->
+                    </div><!-- End .panel -->
+                  
+
+                    <div class="panel panel-default">
+                      <div class="panel-heading" role="tab" id="headingEight">
+                          <h4 class="panel-title">
+                              <a class="collapsed" tabindex="8" role="button" data-toggle="collapse" data-parent="#accordion" data-href="collapseEight" {% if property_details|length %} href="#collapseEight" {% endif %} aria-expanded="false" aria-controls="collapseEight" id="section_seven">
+                                Reservation Agreement
+                                <span class="icon"></span>
+                              </a>
+                          </h4>
+                      </div>
+                      <div id="collapseEight" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingEight">
+                          <div class="panel-body">
+                              <div class="row">
+                                <div class="col-lg-12 col-md-12">
+                                  <div class="form-group">
+                                    <label for="municipality">Please review and sign the reservation agreement to reserve your property for auction. </label>
+                                    <div class="enable-text">
+                                      This Reservation Agreement is between {% if property_details.signature %}{{property_details.signature|default:""}}{% else %}{{request.session.first_name|default:""}}{% endif %} and the Seller. By signing this agreement, the Seller confirms their intent to reserve the following property for auction:
+                                      <br>
+                                      Property Address: <span class="address_detail">{{property_details.state_name|default:""}}, {{property_details.property_name|default:""}}, {{property_details.country_name|default:""}}</span>
+                                      <br>
+                                      Auction Date: <span class="auction_date_text" id="auction_date_text_one">{{property_details.start_date|default:""}}</span>
+                                      <br>
+                                      Terms of Reservation:
+                                      <br>
+                                      
+                                      The Seller agrees to provide all necessary documents related to the property.<br>
+                                      The property will be reserved for auction on <span class="auction_date_text" id="auction_date_text_two">{{property_details.start_date|default:""}}</span>.<br>
+                                      The Seller acknowledges that the auction process will be conducted according to the terms outlined.<br>
+                                      Any fees associated with the reservation will be communicated separately.<br>
+                                      The Seller may withdraw the reservation prior to the auction date.
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 col-sm-12">
+                                  <div class="form-group agrement-text">
+                                    <input type="checkbox" class="term_agreement" id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
+                                    <label for="term_agreement" class="">I have read and agree to the terms of the reservation agreement.</label>
+                                  </div>
+                                </div><!-- End .col-md-12 -->
+                                <div class="col-md-6 col-sm-6">
+                                  <div class="form-group">
+                                    <label for="signature" class="signature">Signature <span class="text-danger">*</span></label>
+                                    <input type="text" name="signature" class="form-control" id="signature" value="{% if property_details.signature %}{{property_details.signature|default:''}}{% else %}{{request.session.first_name|default:''}}{% endif %}" placeholder="Enter signature" />
+                                  </div>
+                                </div><!-- End .col-md-6 -->
+                              </div><!-- End .row -->
+                          </div><!-- End .panel-body -->
+                      </div><!-- End .panel-collapse -->
+                    </div><!-- End .panel -->
+                  {% endif %}
+
+                </div><!-- panel-group -->
+              </div><!-- End .customscroll -->
+
+            </div>
+
+            <div class="clearfix pt30" id="submit_button_section" {% if not request.GET.property_id %} style="display: none;" {% endif %}>
+              <button class="btn btn-primary-bdr" tabindex="12" type="button" name="property_info_submit_next_btn" id="property_info_submit_next_btn" value="Next">Next</button><button type="button" name="property_info_submit_exit_btn" id="property_info_submit_exit_btn" value="save_exit" class="btn btn-secondary">Save & Exit</button><a href="/admin/listing/" class="btn btn-primary">Cancel</a>
+            </div>
+
+          </div><!-- End .col-md-10 -->
+        </div><!-- End .row -->
+  </form>
+      </div><!-- End .dashboard-body -->
+<div class="overlay" style="display:none;">
+  <div class="loader">Loading...</div>
+</div>
+
+<div id="confirmDltOwnerModal" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Confirmation</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="font15 center">
+          Are you sure you want to delete?
+        </p>
+        <div class="clearfix center">
+          <button type="button" class="btn btn-secondary del_owner_btn" id="del_owner_true" del_element_id="">Yes</button> <button type="button" class="btn btn-primary del_owner_btn" id="del_owner_false" del_element_id="">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- End .confirmDltOwnerModal -->
+
+
+{% endblock %}
+{% block js_content %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script> -->
+  <script type="text/javascript" src="{% static 'admin/js/datetimepicker.js' %}?v=4.17.37"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.5"></script>
+  <script type="text/javascript" src="{% static 'admin/js/chosen.js' %}?v=2.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/add-listing-all-step.js' %}?v=1.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.3"></script>
+  <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/uploads.js' %}?v=1.4"></script>
+
+  <!-- End Range -->
+  <script type="text/javascript" src="{% static 'admin/js/range.js' %}"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('.panel').click(function() {
+          $('.panel.panel-active').removeClass("panel-active");
+          $(this).addClass("panel-active");
+      });
+    });
+  </script>
+
+{% endblock %}

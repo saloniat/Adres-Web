@@ -1,0 +1,19 @@
+{% if current_page == 1%}
+    <li class="page-item disabled"><a class="page-link" role="button" tabindex="4" href="javascript:void(0)"><span class="arrow previous-arrow"></span></a></li>
+  {% else %}
+    <li class="page-item"><a class="page-link" role="button" tabindex="4" href="javascript:void(0)" onclick="auctionListingSearch({{current_page|add:'-1'}})"><span class="arrow previous-arrow"></span></a></li>
+  {% endif %}
+
+  {% for page in total_page %}
+    {% if current_page == forloop.counter %}
+        <li id="1" class="page-item active"><a class="page-link" role="button" tabindex="5" href="javascript:void(0)">{{forloop.counter}}</a></li>
+    {% else %}
+        <li class="page-item"><a class="page-link" role="button" tabindex="5" href="javascript:void(0)" onclick="auctionListingSearch({{forloop.counter}})">{{forloop.counter}}</a></li>
+    {% endif %}
+  {% endfor %}
+
+  {% if current_page == no_page%}
+    <li class="page-item disabled"><a class="page-link" role="button" tabindex="6" href="javascript:void(0)"><span class="arrow next-arrow"></span></a></li>
+  {% else %}
+    <li class="page-item"><a class="page-link" role="button" tabindex="6" href="javascript:void(0)" onclick="auctionListingSearch({{current_page|add:1}})"><span class="arrow next-arrow"></span></a></li>
+  {% endif %}

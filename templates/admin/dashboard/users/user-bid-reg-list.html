@@ -1,0 +1,67 @@
+{% load static %}
+{% load dashboard_extra %}
+{% load humanize %}
+<table cellpadding="0" cellspacing="0" width="100%" data-table="Users Bid List Table" role="table">
+    <thead>
+      <tr role="row">
+        <th role="columnheader" scope="row">
+          &nbsp;
+        </th>
+        <th role="columnheader" scope="row">
+          Property Name
+        </th>
+        <th role="columnheader" scope="row">
+          Registration Status
+        </th>
+        <th role="columnheader" scope="row">
+          Bid Limit
+        </th>
+        <th role="columnheader" scope="row">
+          Bid Count
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+        {% if list_data|length > 0 %}
+            {% for bidlist in list_data %}
+                <tr role="row">
+                    <td role="rowheader">&nbsp;</td>
+                    <td role="rowheader">
+                    <h6 class="blue-text">
+                        {{ bidlist.property_address_one|default:'' }}
+                        <span>{{ bidlist.property_city|default:'' }}, {{ bidlist.property_state|default:'' }} {{ bidlist.property_postal_code|default:'' }}</span>
+                    </h6>
+                    </td>
+                    <td role="rowheader">
+                    <span class="badge {% if bidlist.is_approved_name|lower == 'pending' %}badge-warning{% elif bidlist.is_approved_name|lower == 'approved' %}badge-success{% elif bidlist.is_approved_name|lower == 'declined' %}badge-danger{% else %}badge-info{% endif %}">{{ bidlist.is_approved_name|default:'' }}</span>
+                    </td>
+                    <td role="rowheader">
+                      {% if bidlist.bid_limit|length > 0 %}
+                        ${{ bidlist.bid_limit|default:'-' }}
+                      {% else %}
+                        -
+                      {% endif %}  
+                    </td>
+                    <td role="rowheader">
+                    <div class="tooltipp"><span class="blue-text">{{ bidlist.bid_count|default:'' }}</span>
+                        <span class="tooltipp__content right">
+                        <ul>
+                            <li>
+                            <span>First Bid:</span> $42000
+                            </li>
+                            <li>
+                            <span>Second Bid:</span> $42100
+                            </li>
+                        </ul>
+                        </span>
+                    </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+                <tr role="row">
+                  <td role="rowheader" colspan="5" style="text-align: center;">No data available</td>
+                </tr>
+        {% endif %}
+    </tbody>
+</table>

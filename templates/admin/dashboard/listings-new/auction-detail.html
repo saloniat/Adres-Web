@@ -1,0 +1,337 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+    
+    <!-- <link rel="stylesheet" href="{% static 'admin/css/chosen.css' %}"> -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+  
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+{% if request.GET.property_id %}
+<div class="asset-detail-top">
+  <div class="row">
+    <div class="col-md-12">
+
+      <div class="item">
+        <div class="block">
+          {% if property_details.cover_image.0.doc_file_name %}
+          <figure>
+            <img src="{{ azure_blob_url }}{{ property_details.cover_image.0.bucket_name }}/{{ property_details.cover_image.0.doc_file_name }}" alt="real estate sales">
+          </figure>
+          {% endif %}
+          <h4>
+            <span>
+              {{ property_details.property_name|default:'' }}
+            </span>
+          </h4>
+        </div><!-- End .block -->
+      </div><!-- End .item -->
+    </div>
+
+  </div>
+</div><!-- End .asset-detail-top -->
+{% endif %}
+<div class="dashboard-body">
+  <form name="auction_detail_frm" id="auction_detail_frm" method="post" autocomplete="off">
+    {% csrf_token %}
+        <input type="hidden" name="property_id" id="property_id" value="{{ request.GET.property_id }}" />
+        <input type="hidden" id="auctionId" value="{{ property_details.auction_id|default:'' }}" />
+        <input type="hidden" name="step" id="step" value="2" />
+        <div class="row">
+          <div class="col-md-12 col-sm-12">
+            <!-- <div class="table-heading">
+              <div class="item">
+                <h6>
+                  Auction Details
+                </h6>
+              </div>
+            </div> -->
+            
+            <div class="customscroll bidder-accordian">
+              <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default panel-active">
+                  <div class="panel-heading" role="tab" id="headingOne">
+                    <h4 class="panel-title">
+                        <a role="button" tabindex="7" data-toggle="collapse" data-parent="#accordion" data-href="collapseOne" {% if request.GET.property_id %} href="#collapseOne" {% endif %} aria-expanded="true" aria-controls="collapseOne" class="" id="section_one">
+                          Auction Details
+                          <span class="icon"></span>
+                        </a>
+                    </h4>
+                  </div>
+                  <div id="collapseOne" class="panel-collapse in" role="tabpanel" aria-labelledby="headingOne">
+                    <div class="panel-body">
+                      <div class="row">
+                        <div class="col-md-12 col-sm-12">
+                          
+                            <div class="row">
+
+                              {% if property_details.can_relist %}
+                                <input type="hidden" name="relist" id="relist" value="1">
+                              {% endif %}
+
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="start_price">Auction Type <span class="text-danger">*</span></label>
+                                  <div class="aedprefix">
+                                    {% if property_details.is_auction_start %}
+                                      <select class="start_price form-control select" aria-label="Auction Type" name="auction_type_showing" id="auction_type_showing" {% if property_details.is_auction_start %} disabled {% endif %}>
+                                        <option value="">Select Auction Type</option>
+                                        <option value="1" {% if property_details.property_for == 1 %} selected {% endif %}>Regular</option>
+                                        <option value="2" {% if property_details.property_for == 2 %} selected {% endif %}>Live</option>
+                                      </select>
+                                      <input type="hidden" name="auction_type" id="auction_type" value="{{property_details.property_for}}" />
+                                    {% else %}
+                                      <select class="start_price form-control select" aria-label="Auction Type" name="auction_type" id="auction_type">
+                                        <option value="">Select Auction Type</option>
+                                        <option value="1" {% if property_details.property_for == 1 %} selected {% endif %}>Regular</option>
+                                        <option value="2" {% if property_details.property_for == 2 %} selected {% endif %}>Live</option>
+                                      </select>
+                                    {% endif %}
+                                    </div>
+                                </div>
+                              </div>
+
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="start_price">Min Starting Price <span class="text-danger">*</span></label>
+                                  <div class="aedprefix">
+                                    <span class="aed">AED</span>
+                                    <input type="text" class="form-control" name="start_price" id="start_price" value="{{ property_details.start_price|convert_num|intcomma|default:'' }}" placeholder="Enter starting price" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
+                                    
+                                    </div>
+                                </div>
+                              </div>
+
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="deposit_amount">Deposit Price <span class="text-danger">*</span></label>
+                                  <div class="aedprefix">
+                                    <span class="aed">AED</span>
+                                    <input type="text" class="form-control" name="deposit_amount" id="deposit_amount" value="{% if property_details.deposit_amount %}{{ property_details.deposit_amount|convert_num|intcomma|default:'' }}{% endif %}" placeholder="Enter deposit amount" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                    </div>
+                                </div>
+                              </div>
+
+                              <div class="col-lg-6 col-md-6">
+                                <div class="form-group">
+                                  <label for="reserve_amount">Reserved Price <span class="text-danger">*</span></label>
+                                  <div class="aedprefix">
+                                    <span class="aed">AED</span>
+                                    <input type="text" class="form-control" name="reserve_amount" id="reserve_amount" value="{{ property_details.reserve_amount|convert_num|intcomma|default:'' }}" placeholder="Enter reserve amount" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                    </div>
+                                </div>
+                              </div>
+
+                              
+                              <div class="col-md-12 col-sm-12">
+                                <div class="byeprefence">
+                                  <label for="buyer_preference">Buyer Preference <span class="text-danger">*</span></label>
+                                  <div class="radioList">
+                                    <div class="form-check">
+                                      <input type="radio" class="buyer_preference css-radio" id="cash" name="buyer_preference" value="1" {% if property_details.buyer_preference %}{% if property_details.buyer_preference == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                      <label for="cash" class="radio-label">Cash</label>
+                                    </div>
+                                    <div class="form-check">
+                                      <input type="radio" class="buyer_preference css-radio" id="mortgage" name="buyer_preference" value="2" {% if property_details.buyer_preference == 2 %}checked="checked"{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                      <label for="mortgage" class="radio-label">Mortgage</label>
+                                    </div>
+                                    <div class="form-check">
+                                      <input type="radio" class="buyer_preference css-radio" id="both" name="buyer_preference" value="3" {% if property_details.buyer_preference == 3 %}checked="checked"{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                      <label for="both" class="radio-label">Both</label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div><!-- End .col-md-12 -->
+
+                              <div class="col-md-12 col-sm-12">
+                                
+                                <div class="form-group">
+                                  <div class="full-price">
+                                    <label for="sell_at_full_amount_status">Sell at full price</label>
+                                    <label title="Allow All Module Access" area-label="Allow All Module Access" class="switch small">
+                                      <input type="checkbox" class="sell_at_full_amount_status css-checkbox" id="sell_at_full_amount_status" name="sell_at_full_amount_status" value="1" {% if property_details.sell_at_full_amount_status %}checked{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                      <span class="slide round"></span>
+                                    </label>
+                                  </div>
+                                  <p class="light-text mb0">
+                                    Enable this option to sell the property immediately at your desired full price without waiting for further bids.
+                                  </p>
+                                </div>
+                                
+                                <div class="row form-group full_price_field" {% if property_details.sell_at_full_amount_status %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+                                  <div class="col-md-6 col-sm-6">
+                                    <label for="full_amount">Full Price <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="full_amount" id="full_amount" value="{{ property_details.full_amount|convert_num|intcomma|default:'' }}" placeholder="Enter full price" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                  </div>
+                                </div>
+                                
+                              </div>
+
+                              <hr>
+                              
+                              <div class="col-md-12 col-sm-12">
+                                <div class="row form-group bid_increment_field">
+                                  <div class="col-md-6 col-sm-6">
+                                    <label for="bid_increments">Bid Increment Price <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="bid_increments" id="bid_increments" value="{{ property_details.bid_increments|convert_num|intcomma|default:'' }}" placeholder="Enter bid price" {% if property_details.is_auction_start %} readonly {% endif %} oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                                  </div>
+                                </div>
+                                
+                              </div><!-- End .col-md-12 -->
+
+                              <hr>
+
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="start_date" class="start_date">Starting Date & Time <span class="text-danger">*</span></label>
+                                  <input type="text" name="start_date" class="form-control" id="start_date" value="{{property_details.start_date|default:''}}" placeholder="Please enter start date" {% if request.GET.property_id and property_details.status_id != 1 and not property_details.status_id %} disabled {% endif %} {% if property_details.is_auction_start %} readonly {% endif %}/>
+                                  <input type="hidden" name="utc_start_date" class="form-control" id="utc_start_date" value="{{property_details.start_date|default:''}}" />
+                                </div>
+                              </div><!-- End .col-md-6 -->
+                              
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="end_date" class="start_date">Ending Date & Time <span class="text-danger">*</span></label>
+                                  <input type="text" name="end_date" class="form-control" id="end_date" value="{{property_details.end_date|default:''}}" placeholder="Please enter end date" {% if request.GET.property_id and property_details.status_id != 1 and not property_details.status_id %} disabled {% endif %}/>
+                                  <input type="hidden" name="utc_end_date" class="form-control" id="utc_end_date" value="{{property_details.end_date|default:''}}" />
+                                </div>
+                              </div><!-- End .col-md-6 -->
+
+                              <div class="col-md-6 col-sm-6">
+                                <div class="form-group">
+                                  <label for="is_featured">Would you like to feature your property? <span class="text-danger">*</span></label>
+  
+                                  <div class="clearfix">
+                                    <input type="radio" class="is_featured css-radio" id="is_featured_yes" name="is_featured" value="1" {% if property_details.is_featured %}{% if property_details.is_featured == 1%}checked="checked"{% endif %}{% else %} checked="checked" {% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                    <label for="is_featured_yes" class="radio-label">Yes</label>
+                                    &nbsp; 
+                                    <input type="radio" class="is_featured css-radio" id="is_featured_no" name="is_featured" value="0" {% if property_details.is_featured != 1 %}checked="checked"{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                    <label for="is_featured_no" class="radio-label">No</label>
+                                  </div>
+                                </div>
+                              </div><!-- End .col-md-6 -->
+                              <div class="clearfix col-md-12 right">
+                                <a class="btn btn-primary-bdr" id="section_one_next_button">Next</a>
+                              </div>
+                            
+                          </div>
+                        </div><!-- End .col-md-6 -->
+                        <div class="col-md-6 col-sm-6">
+                          &nbsp;
+                        </div><!-- End .col-md-6 -->
+
+                      </div><!-- End .row -->
+                    </div><!-- End .panel-body -->
+                  </div><!-- End .panel-collapse -->
+                </div><!-- End .panel -->
+
+                <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingTwo">
+                      <h4 class="panel-title">
+                          <a class="collapsed" tabindex="8" role="button" data-toggle="collapse" data-parent="#accordion" data-href="collapseTwo" {% if property_details|length %} href="#collapseTwo" {% endif %} aria-expanded="false" aria-controls="collapseTwo" id="section_two">
+                            Reservation Agreement
+                            <span class="icon"></span>
+                          </a>
+                      </h4>
+                  </div>
+                  <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                      <div class="panel-body">
+                          <div class="row">
+                            <div class="col-lg-12 col-md-12">
+                              <div class="form-group">
+                                <label for="municipality">Please review and sign the reservation agreement to reserve your property for auction. </label>
+                                <div class="enable-text">
+                                  This Reservation Agreement is between {% if property_details.signature %}{{property_details.signature|default:""}}{% else %}{{property_details.seller_name|default:""}}{% endif %} and the Seller. By signing this agreement, the Seller confirms their intent to reserve the following property for auction:
+                                  <br>
+                                  Property Address: {{property_details.state_name|default:""}}, {{property_details.property_name|default:""}}, {{property_details.country_name|default:""}}
+                                  <br>
+                                  Auction Date: <span class="auction_date_text" id="auction_date_text_one">{{property_details.start_date|default:""}}</span>
+                                  <br>
+                                  Terms of Reservation:
+                                  <br>
+                                  The Seller agrees to provide all necessary documents related to the property.
+                                  <br>
+                                  The property will be reserved for auction on <span class="auction_date_text" id="auction_date_text_two">{{property_details.start_date|default:""}}</span>.
+                                  <br>
+                                  The Seller acknowledges that the auction process will be conducted according to the terms outlined.
+                                  <br>
+                                  Any fees associated with the reservation will be communicated separately.<br>
+                                  The Seller may withdraw the reservation prior to the auction date.
+                                  
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-12 col-sm-12">
+                              <div class="form-group agrement-text">
+                                {% if property_details.is_auction_start %}
+                                  <input type="checkbox" class="term_agreement " id="term_agreement_show" name="term_agreement_show" value="1" {% if property_details.term_agreement %}checked{% endif %} {% if property_details.is_auction_start %} disabled {% endif %}>
+                                  <input type="hidden" class="term_agreement " id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
+                                {% else %}
+                                  <input type="checkbox" class="term_agreement " id="term_agreement" name="term_agreement" value="1" {% if property_details.term_agreement %}checked{% endif %}>
+                                {% endif %}
+                                <label for="term_agreement" class="">I have read and agree to the terms of the reservation agreement.</label>
+                              </div>
+                            </div><!-- End .col-md-12 -->
+
+                            <div class="col-md-6 col-sm-6">
+                              <div class="form-group">
+                                <label for="signature" class="signature">Signature <span class="text-danger">*</span></label>
+                                <input type="text" name="signature" class="form-control" id="signature" value="{% if property_details.signature %}{{property_details.signature|default:''}}{% else %}{{property_details.seller_name|default:''}}{% endif %}" placeholder="Enter signature" {% if property_details.is_auction_start %} readonly {% endif %}/>
+                              </div>
+                            </div><!-- End .col-md-6 -->
+                          </div><!-- End .row -->
+                      </div><!-- End .panel-body -->
+                  </div><!-- End .panel-collapse -->
+                </div><!-- End .panel -->
+
+              </div><!-- panel-group -->
+            </div><!-- End .customscroll -->
+
+            <div class="clearfix pt30" id="submit_button_section" {% if property_details|length %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+              <button class="btn btn-primary-bdr" tabindex="12" type="button" name="property_info_submit_next_btn" id="property_info_submit_next_btn" value="Next">Next</button><button type="button" name="property_info_submit_exit_btn" id="property_info_submit_exit_btn" value="save_exit" class="btn btn-secondary">Save & Exit</button><a href="/admin/listing/" class="btn btn-primary">Cancel</a>
+            </div>
+
+          </div><!-- End .col-md-10 -->
+        </div><!-- End .row -->
+  </form>
+      </div><!-- End .dashboard-body -->
+<div class="overlay" style="display:none;">
+  <div class="loader">Loading...</div>
+</div>
+
+{% endblock %}
+{% block js_content %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/datetimepicker.js' %}?v=4.17.37"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.5"></script>
+  <script type="text/javascript" src="{% static 'admin/js/chosen.js' %}?v=2.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/datetime_format.js' %}?v=1.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/auction_detail.js' %}?v=1.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.3"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}"></script>
+
+  <!-- End Range -->
+  <script type="text/javascript" src="{% static 'admin/js/range.js' %}"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('.panel').click(function() {
+          $('.panel.panel-active').removeClass("panel-active");
+          $(this).addClass("panel-active");
+      });
+    });
+  </script>
+
+{% endblock %}

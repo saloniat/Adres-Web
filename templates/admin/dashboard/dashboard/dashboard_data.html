@@ -1,0 +1,327 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+{% endblock %}
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<div class="dashboard-body">
+    <div class="row">
+        <div class="col-md-12 col-sm-12">
+          <div class="listing-top">
+            <div class="block">
+              &nbsp;
+            </div>
+            
+            <div class="block filters">
+              {% csrf_token %}
+              <ul>
+                <li>
+                  <div class='input-group date' id='datetimepicker1'>
+                    <input type='text' class="form-control" id='datetimepicker_1' placeholder="2025-01-01" value="2025-01-01">
+                    <span class="input-group-addon" style="background: none; border: none;">
+                      <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                  </div>
+                </li>
+                <li>
+                  <div class='input-group date' id='datetimepicker2'>
+                    <input type='text' class="form-control" id='datetimepicker_2' placeholder="2025-12-31" value="2025-12-31">
+                    <span class="input-group-addon" style="background: none; border: none;">
+                      <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div><!-- End .listing-top -->
+
+          <div class="dashboard-items">
+            <div class="block">
+              <div class="box">
+                <a href="/admin/users/">
+                  <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-1"></div>
+                    </div>
+                    
+                    <div class="usr-text">
+                      <h6>
+                        Buyers
+                      </h6>
+                      <h2 id="total_customer">
+                      </h2>
+                    </div>
+                  </div>
+                  
+                  <div class="usr-block">
+                    <div class="item-block">
+                      <div class="actve">Under Review : <span id="under_review_user"></span></div>
+                    </div>
+                    <div class="item-block">
+                      <div class="inactve">Verified : <span id="verified_user"></span></div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+          
+            <div class="block">
+              <div class="box">
+                <a href="/admin/developers/">
+                  <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-2"></div>
+                    </div>
+                    <div class="usr-text">
+                      <h6>
+                        Developers
+                      </h6>
+                      <h2 id="total_developer">
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div class="usr-block">
+                    <div class="item-block">
+                      <div class="actve">Active: <span id="active_developer"></span></div>
+                    </div>
+                    <div class="item-block">
+                      <div class="inactve">Inactive: <span id="inactive_developer"></span></div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+
+            <div class="block">
+              <div class="box">
+                <a href="/admin/project-list/">
+                  <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-3"></div>
+                    </div>
+                    <div class="usr-text">
+                      <h6>
+                        Projects
+                      </h6>
+                      <h2 id="total_projects">
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div class="usr-block">
+                    <div class="item-block">
+                      <div class="actve">Active : <span id="active_project"></span></div>
+                    </div>
+                    <div class="item-block">
+                      <div class="inactve">Inactive : <span id="inactive_project"></span></div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+
+            <div class="block">
+              <div class="box">
+                <a href="/admin/listing/">
+                  <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-3"></div>
+                    </div>
+                    <div class="usr-text">
+                      <h6>
+                        Properties
+                      </h6>
+                      <h2 id="total_property">
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div class="usr-block">
+                    <div class="item-block">
+                      <div class="actve">Active : <span id="active_property"></span></div>
+                    </div>
+                    <div class="item-block">
+                      <div class="inactve">Inactive : <span id="inactive_property"></span></div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+
+            <div class="block">
+              <div class="box">
+                <a href="/admin/bidder-registration/">
+                  <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-4"></div>
+                    </div>
+                    <div class="usr-text">
+                      <h6>
+                        Transaction
+                      </h6>
+                      <h2 id="total_transaction">
+                      </h2>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+
+            <div class="block">
+              <div class="box">
+                <a href="/admin/employee/">
+                  <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-2"></div>
+                    </div>
+                    <div class="usr-text">
+                      <h6>
+                        Employees
+                      </h6>
+                      <h2 id="total_employee">
+                      </h2>
+                    </div>
+                  </div>
+                  
+                  <div class="usr-block">
+                    <div class="item-block">
+                      <div class="actve">Active: <span id="active_employee"></span></div>
+                    </div>
+                    <div class="item-block">
+                      <div class="inactve">Inactive: <span id="inactive_employee"></span></div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+
+            <div class="block">
+              <div class="box">
+                <a href="/admin/listing/">
+                   <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-6"></div>
+                    </div>
+                    <div class="usr-text">
+                      <h6>
+                        Sold Property
+                      </h6>
+                      <h2 id="total_sold_property">
+                      </h2>
+                    </div>
+                   </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+
+            <div class="block">
+              <div class="box">
+                <a href="/admin/contact-listing/">
+                  <div class="usr-data">
+                    <div class="circle">
+                      <div class="icons icon-8"></div>
+                    </div>
+                    <div class="usr-text">
+                      <h6>
+                        Inquiry
+                      </h6>
+                      <h2 id="total_enquiry">
+                      </h2>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div><!-- End .block -->
+
+          </div><!-- End .dashboard-items -->
+          
+        </div><!-- End .col-md-12 -->
+
+        <div class="graph-wrap">
+          <div class="col-md-12">
+            <div class="row">
+              <div class="col-md-12 pb30">
+                <div class="map-box" id="map" style="min-height:404px;">
+                  <div class="map_graph custom-loader"></div>
+                </div>
+              </div><!-- End .col-md-12 -->
+
+              <div class="col-md-6 pb30">
+                <div class="graph-shadow">
+                  <div class="graph-head">
+                    <h6>
+                      <span class="icon"><img src="{% static 'admin/images/bidder-icon.svg' %}" alt="" width="25"></span> Signup Customer VS Detail Page View
+                    </h6>
+                    <div class="btns">
+                      <a href="javascript:void(0)" id="refresh_signup_view_graph"><i class="fa-solid fa-rotate"></i></a>
+                      <a href="#"><i class="fa-solid fa-arrows-up-down-left-right"></i></a>
+                    </div>
+                  </div>
+                  <div class="graph-box">
+                    <div class="signup_graph custom-loader"></div>
+                    <canvas id="line_chart"></canvas>
+                  </div>
+                </div>
+              </div><!-- End .col-md-6 -->
+
+              <div class="col-md-6 pb30">
+                <div class="graph-shadow">
+                  <div class="graph-head">
+                    <h6>
+                      <span class="icon"><img src="{% static 'admin/images/sold-icon.svg' %}" alt="" width="25"></span> Property VS Registered User 
+                    </h6>
+                    <div class="btns">
+                      <a href="javascript:void(0)" id="refresh_property_registration_graph"><i class="fa-solid fa-rotate"></i></a>
+                      <a href="#"><i class="fa-solid fa-arrows-up-down-left-right"></i></a>
+                    </div>
+                  </div>
+                  <div class="graph-box">
+                    <div class="registration_graph custom-loader"></div>
+                    <canvas id="bar_chart"></canvas>
+                  </div>
+                </div>
+              </div><!-- End .col-md-6 -->
+            </div>
+          </div>
+        </div><!-- End .graph-wrap -->
+
+      </div><!-- End .row -->
+</div><!-- End .dashboard-body -->
+{% endblock %}
+
+{% block js_content %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.5"></script>
+    <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom.js' %}?v=2.7"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=2.7"></script>
+    <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+    <script type="text/javascript" src="{% static 'admin/js/dashboard_data.js' %}?v=3.2"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.15.1/moment.min.js"></script> -->
+    <script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+    <!-- <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script> -->
+    <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"></script>
+    
+<script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: "{{site_detail.google_map_key}}", v: "beta"});</script>
+<script>
+  const progress_bars = document.querySelectorAll('.process');
+  progress_bars.forEach(bar => {
+    setTimeout(() => {
+      const { size } = bar.dataset;
+      bar.style.width = `${size}%`
+    }, 1000);
+  });
+</script>
+{% endblock %}

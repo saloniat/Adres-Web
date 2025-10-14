@@ -1,0 +1,374 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+
+{% block title %} Advertisements {% endblock title %}
+
+{% block styles %}
+  <link href="{% static 'admin/vendors/jQuery-Multiple-Select/dist/css/selectize.bootstrap3.css' %}" type="text/css" rel="stylesheet" />
+    <link href="{% static 'css/dropzone.css' %}?v=2.1" type="text/css" rel="stylesheet" />
+
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+
+  <div class="listing-top">
+    <div class="block">
+      <h6>Advertisements : <b id="totalCount">Loading...</b></h6>
+    </div>
+
+    <div class="block">
+      <form action="" class="search-field last top_search">
+          <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
+          <input type="text" id="search" class="form-control input-sm" placeholder="Search for..." aria-label="Search for ...">
+          <button class="btn btn-primary btn-xs searchBtn"  type="submit" aria-label="Go">Go!</button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="listing-bottom">
+    
+    <div class="block" style="min-width:150px">
+      <select class="form-control" id="site" area-label="Domains" title="Domains" name="site_id" required="required" multiple>
+          <option  value="" selected disabled>All Domains</option>
+          {% for obj in domain_list %}
+              {% if obj.is_active %}
+                  <option value="{{obj.id}}">{{obj.domain_name}}</option>
+              {% endif %}
+          {% endfor %}
+      </select>
+    </div>
+    <div class="block">
+      <select class="form-control" name="prop_filter_status" area-label="Status" title="Status" id="prop_filter_status" multiple>
+        <option value="" selected disabled>Filter Status</option>
+        {% for obj in status_list %}
+              <option value="{{obj.id}}">{{obj.status_name}}</option>
+          {% endfor %}
+      </select>
+    </div>
+    <div class="block" style="min-width: 130px;">
+      <select class="form-control" area-label="Record" title="Record" name="per_page_record" id="per_page_record">
+        <option value="10">10 Records</option>
+        <option value="20" selected>20 Records</option>
+        <option value="30">30 Records</option>
+        <option value="40">40 Records</option>
+        <option value="50">50 Records</option>
+      </select>
+    </div>
+    <div class="block">
+      <a type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target=".add-advertisement"><i class="fa fa-plus-circle" aria-hidden="true" role="presentation"></i> Add Advertisement</a>
+    </div>
+  </div>
+  
+  <div class="x_content">
+
+    {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags == 'error' %} alert-danger {% elif message.tags == 'success' %} alert-success {% else %} alert-info {% endif %} alert-dismissible " role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+          </button>{{ message }}
+      </div>
+    {% endfor %}
+    {% endif %}
+    <input type="hidden" name="page-advertisement-list" id="page-advertisement-list" value="1">						
+
+
+    <span id="span-ajax-advertisement-list">
+      <div class="table-responsive">
+      <table class="table jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Advertisement List Table" role="table">
+        <thead>
+          <tr role="row" class="headings" style="white-space: nowrap;">
+            <th class="column-title" role="columnheader" scope="col">ID </th>
+            <th class="column-title" role="columnheader" scope="col">Company Name </th>
+            <th class="column-title" role="columnheader" scope="col" style="width:10%">Domain Name</th>
+            <th class="column-title" role="columnheader" scope="col">URL </th>
+            <th class="column-title" role="columnheader" scope="col">Added on</th>
+            <th class="column-title" role="columnheader" scope="col">Views</th>
+            <th class="column-title" role="columnheader" scope="col">Status</th>
+            <th class="column-title no-link last" role="columnheader" scope="col" style="width:10%"><span class="nobr">Action</span></th>
+          </tr>
+        </thead>
+            
+          <tbody>							  			  
+          </tbody>
+        </table>
+      </div>
+    </span> 
+
+  </div>
+         
+</div>
+
+
+
+   <!-- Add advertisement modal -->
+  <div class="modal fade add-advertisement centered-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg ">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel2">Add Advertisement</h4>
+        </div>
+        <div class="modal-body">
+          <form method="post" action="{% url 'admin-save-advertisement' %}" data-parsley-validate class="form-label-left form-subs add-advertisement-form">
+            {% csrf_token %}
+            <div class="form-group">
+              <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="site_id">Choose Domain
+              </label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <select name="site_id" id="site_id" aria-label="Choose Domain" class="select form-control">
+                  <option value="" selected>Select</option>
+                  {% if domain_list %}
+                  {% for item in domain_list %}
+                    {% if item.is_active %}
+                    <option value="{{ item.id }}">{{ item.domain_name }}</option>
+                    {% endif %}
+                  {% endfor %}
+                  {% endif %}
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="company_name">Company Name <span class="required">*</span>
+              </label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input type="text" name="company_name" aria-label="Company Name" required="required" class="form-control col-md-7 col-xs-12">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class=" col-md-3 col-sm-3 col-xs-12" for="url">Url <span class="required">*</span>  <br><sub>(Ex: https://www.example.com)</sub>
+              </label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <input type="text" name="url" aria-label="Url" required="required" class="form-control col-md-7 col-xs-12">
+              </div>
+            </div>
+
+            <div class="item form-group">
+              <label class="lh46 col-md-3 col-sm-3 col-xs-12">Ad Image <span class="required">*</span>
+              </label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="upload-fav">
+                    <div class="item" style="width: 65%;">
+                      <div class="dropzone addImgFrm" id="addImgFrm">
+                        <input type="hidden" class="upload" required="required" data-parsley-trigger="keyup" id="upload" name="upload" value=""/>
+                        <input type="hidden" class="upload_name" name="upload_name" id="upload_name" value=""/>
+                        <div class="fallback">
+                          <input name="file" type="file" aria-label="File Upload" class="ad_image_div" id="ad_image_div" name="ad_image_div" />
+                          <button role="button"><i class="fa fa-upload" aria-hidden="true" role="presentation"></i> Upload favicon</button>
+                        </div>
+                      </div>
+                    </div>                  
+                    
+                    <div class="item adImgDiv" id="adImgDiv" style="display:none; width: 35%;">
+                      <div class="fav-icon">
+                        <figure>
+                          <img src="#" id="adImg" alt="real estate sales" width="211" height="113">
+                        </figure>
+                        <a href="javascript:void(0)" role="button"><i class="fa fa-trash text-danger" role="presentation" aria-hidden="true"></i></a>
+                      </div>
+                    </div>
+                </div>
+              </div> 
+            </div>
+
+
+            <div class="form-group">
+              <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="status">Status <span class="required">*</span>
+              </label>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <select class="select form-control" id="status" aria-label="Status" name="status" required="required" >
+                    <option value="" selected>Choose Status</option>
+                    {% for obj in status_list %}
+                        {% if obj.is_active %}
+                            <option value="{{obj.id}}">{{obj.status_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+              </div>
+            </div>
+            
+            <div class="clearfix">
+              <div class="col-md-3 col-sm-3 col-xs-12">
+                &nbsp;
+              </div>
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add</button>
+                <button type="button" class="btn btn-primary-bdr" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /modals -->
+
+
+  <!--Edit advertisement Modal-->
+  <div class="modal fade edit-advertisement-modal centered-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel2">Edit Advertisement</h4>
+        </div>
+        <div class="modal-body">
+          <form method="post" action="{% url 'admin-save-advertisement' %}" data-parsley-validate class="form-label-left form-subs edit-advertisement-form">
+            {% csrf_token %}
+            <input type="hidden" id="advertisement_id" name="advertisement_id" >
+            <div class="form-group">
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="site_id">Choose Domain
+              </label>
+              <div class="col-md-7 col-sm-7 col-xs-12">
+                <select name="site_id" id="editSiteId" aria-label="Choose Domain" class="select form-control">
+                  <option value="" selected>Select</option>
+                  {% if domain_list %}
+                  {% for item in domain_list %}
+                    {% if item.is_active %}
+                    <option value="{{ item.id }}">{{ item.domain_name }}</option>
+                    {% endif %}
+                  {% endfor %}
+                  {% endif %}
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="company_name">Company Name <span class="required">*</span>
+              </label>
+              <div class="col-md-7 col-sm-7 col-xs-12">
+                <input type="text" id="editCompanyName" aria-label="Company Name" name="company_name" required="required" class="form-control col-md-7 col-xs-12">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="url">Url <span class="required">*</span>  <br><sub>(Ex: https://www.example.com)</sub>
+              </label>
+              <div class="col-md-7 col-sm-7 col-xs-12">
+                <input type="text" id="editAdUrl" name="url" aria-label="Url" required="required" class="form-control col-md-7 col-xs-12">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="control-label col-md-5 col-sm-5 col-xs-12">Ad Image <span class="required">*</span>
+              </label>
+              <div class="col-md-7 col-sm-7 col-xs-12">
+                <div class="upload-fav">
+                    <div class="item" style="width: 65%;">
+                      <div class="dropzone editImgFrm" id="editImgFrm">
+                        <input type="hidden" class="upload" required="required" data-parsley-trigger="keyup" id="editUploadID" name="upload" value=""/>
+                        <input type="hidden" class="upload_name" name="upload_name" id="editUploadName" value=""/>
+                        <div class="fallback">
+                          <input name="file" type="file" class="ad_image_div" id="ad_image_div" name="ad_image_div" />
+                          <button><i class="fa fa-upload" aria-hidden="true" role="presentation"></i> Upload favicon</button>
+                        </div>
+                      </div>
+                    </div>                  
+                    
+                    <div class="item editAdImgDiv" id="editAdImgDiv" style="width: 35%;">
+                      <div class="fav-icon">
+                        <figure>
+                          <img src="#" id="editAdImg" alt="real estate sales" width="211" height="113">
+                        </figure>
+                        <a href="javascript:void(0)"><i class="fa fa-trash text-danger" aria-hidden="true" role="presentation"></i></a>
+                      </div>
+                    </div>
+                </div>
+              </div> 
+            </div>
+
+
+            <div class="form-group">
+              <label class="control-label col-md-5 col-sm-5 col-xs-12" for="status">Status <span class="required">*</span>
+              </label>
+              <div class="col-md-7 col-sm-7 col-xs-12">
+                <select class="form-control" id="editStatus" aria-label="Status" name="status" required="required" >
+                    <option value="" selected>Choose Status</option>
+                    {% for obj in status_list %}
+                        {% if obj.is_active %}
+                            <option value="{{obj.id}}">{{obj.status_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="clearfix">
+              <div class="col-md-5 col-sm-5 col-xs-12">
+                &nbsp;
+              </div>
+              <div class="col-md-7 col-sm-7 col-xs-12">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-primary-bdr" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--End modal-->
+
+
+  <!-- Add Event type modal -->
+  <div class="modal fade add-event-type centered-modal" id="confirmImageDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel2">Delete Confirmation</h4>
+        </div>
+        <div class="modal-body text-center">
+          <input type="hidden" name="popup_article_id" id="popup_article_id" value=""/>
+          <input type="hidden" name="popup_section" id="popup_section" value=""/>
+          <input type="hidden" name="popup_image_id" id="popup_image_id" value=""/>
+          <input type="hidden" name="popup_image_name" id="popup_image_name" value=""/>
+          <input type="hidden" name="popup_count" id="popup_count" value=""/>
+          <input type="hidden" name="popup_agent_id" id="popup_agent_id" value=""/>
+          <input type="hidden" name="action" id="action" value=""/>
+          <p>Are you sure you want to delete?</p>
+          
+          <div class="text-center">
+            <button type="button" class="btn btn-primary-bdr del_user_btn" id="del_image_false" data-dismiss="modal">No</button>
+            <button type="submit" class="btn btn-primary del_user_btn" id="del_image_true"> Yes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /modals -->
+</div>
+{% endblock %}
+
+{% block js_content %}
+  <script>
+  let azure_blob_url = '{{azure_blob_url}}';
+  $(function() {
+      setTimeout(function() {
+          $(".alert").hide();
+      }, 3000);
+  });
+  </script>
+  {% comment %} <script type="text/javascript" src="{% static 'admin/build/js/status-active-inactive.js' %}"></script> {% endcomment %}
+  <script type="text/javascript" src="{% static 'admin/build/js/advertisement-list.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/build/js/jquery-ui.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/vendors/jQuery-Multiple-Select/dist/js/standalone/selectize.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+
+
+
+
+{% endblock %}

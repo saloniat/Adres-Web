@@ -1,0 +1,320 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+        <div class="row">
+          <div class="col-md-12 col-sm-12">
+            <div class="listing-top">
+              <div class="block">
+                <a href="/admin/bidder-registration/"><i class="fas fa-chevron-left" aria-hidden="true" role="presentation"></i> Back</a>
+              </div>
+              <div class="block">
+                <small class="light-text">Last Update by : {{ bidder.buyer_information.first_name|default:'' }} {{ bidder.buyer_information.last_name|default:'' }} <span class="convert_to_local_date_time" data-value="{{ bidder.registration_information.updated_on|default:'' }}">({{ bidder.registration_information.updated_on|default:'' }})</span></small>
+              </div>
+            </div><!-- End .listing-top -->
+
+            <div class="bidding-figure">
+              <figure>
+                <img src="{% if bidder.property_image.image %}{{ azure_blob_url }}{{ bidder.property_image.bucket_name }}/{{ bidder.property_image.image }}{% else %}{% static 'theme-1/images/property-default-img.png' %}{% endif %}" alt="real estate sales">
+              </figure>
+              <!-- <a href="/asset-details/?property_id={{ bidder.property }}" target="_blank"> -->
+                <figcaption>
+                  <h5>
+                    <strong>
+                      {{ bidder.property_state|default:'' }}, {{ bidder.community|default:'' }}
+                    </strong>
+                  </h5>
+                </figcaption>
+              <!-- </a> -->
+            </div>
+
+            <form name="bidderUpdateFrm" id="bidderUpdateFrm" method="post" autocomplete="off">
+              {% csrf_token %}
+              <input type="hidden" id="property_id" value="{{ bidder.property }}"/>
+              <input type="hidden" id="auction_id" value="{{ bidder.auction_id }}"/>
+              <input type="hidden" id="user_id" value="{{ bidder.registered_user_id }}"/>
+            <div class="customscroll bidder-accordian">
+              <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <input type="hidden" name="reg_id" id="reg_id" value="{{ bidder.id|default:'' }}"/>
+                <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingThree">
+                      <h4 class="panel-title">
+                          <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree" class="collapsed">
+                            Property Information
+                            <span class="icon"></span>
+                          </a>
+                      </h4>
+                  </div>
+                  <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                      <div class="panel-body">
+                        <div class="row">
+                          <div class="col-md-6">
+                              <ul class="biddr-info">
+                              <li>
+                                <strong>Property Name:</strong> <span class="blue-text">{{ bidder.asset_information.property_name|default:'' }}</span>
+                              </li>
+                              <li>
+                                <strong>Property Type:</strong>
+                                {{ bidder.asset_information.property_type|default:'' }}
+                              </li>
+                              <li>
+                                <strong>Project Name:</strong>
+                                {{ bidder.asset_information.project|default:'-' }}
+                              </li>
+                              <li>
+                                <strong>Country:</strong> {{ bidder.asset_information.country|default:'' }}
+                              </li>
+                            </ul>
+                          </div>
+                          <div class="col-md-6">
+                            <ul class="biddr-info">
+                              <li>
+                                <strong>City:</strong> {{ bidder.asset_information.state|default:'' }}
+                              </li>
+                              <li>
+                                <strong>Municipality:</strong> {{ bidder.asset_information.municipality|default:'' }}
+                              </li>
+                              <li>
+                                <strong>District:</strong> {{ bidder.asset_information.district|default:'' }}
+                              </li>
+                              <li>
+                                <strong>Community:</strong> {{ bidder.asset_information.community|default:'' }}
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
+              </div><!-- End .panel -->
+
+              {% if bidder.buyer_information %}
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" class="collapsed">
+                              Buyer Information
+                              <span class="icon"></span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                        <div class="panel-body">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <ul class="biddr-info">
+                                <li>
+                                  <strong>Registrant Name:</strong> {{ bidder.buyer_information.first_name|default:'' }}
+                                </li>
+                                <li>
+                                  <strong>Email:</strong> {{ bidder.buyer_information.email|default:'' }}
+                                </li>
+                              </ul>
+
+                            </div>
+                            <div class="col-md-6">
+                              <ul class="biddr-info">
+                                <li>
+                                  <strong>Mobile:</strong>+{{agent.bidder.buyer_information.phone_country_code|default:971}} {{ bidder.buyer_information.phone_no|format_phone|default:'' }}
+                                </li>
+                                <li>
+                                  <strong>IP Address:</strong> {{ bidder.buyer_information.ip_address|default:'NA' }}
+                                </li>
+                              </ul>
+
+                            </div>
+                          </div>
+                        </div>
+                    </div>
+                </div><!-- End .panel -->
+              {% endif %}
+              
+              <div class="panel panel-default">
+                  <div class="panel-heading" role="tab" id="headingTwo">
+                      <h4 class="panel-title">
+                          <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" class="collapsed">
+                            Registration Information
+                            <span class="icon"></span>
+                          </a>
+                      </h4>
+                  </div>
+                  <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                      <div class="panel-body">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <ul class="biddr-info">
+                              <li>
+                                <strong>Registration Date:</strong> <span class="convert_to_local_date_time" data-value="{{ bidder.registration_information.added_on|default:'' }}">{{ bidder.registration_information.added_on|default:'' }}</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <div class="col-md-6">
+                            <ul class="biddr-info">
+                              <li>
+                                <strong>Deposit Amount:</strong> {{bidder.registration_information.amount| default:""}}
+                              </li>
+                            </ul>
+                          </div>
+                          <div class="col-md-6">
+                            <ul class="biddr-info">
+                              <li>
+                                <strong>Tax:</strong> {{bidder.registration_information.tax| default:""}}
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                  </div>
+                </div><!-- End .panel -->
+
+              <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingTwo">
+                    <h4 class="panel-title">
+                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSix" aria-expanded="false" aria-controls="collapseSix" class="collapsed">
+                          Approval
+                          <span class="icon"></span>
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseSix" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                    <div class="panel-body">
+                      <div class="row">
+                        <div class="col-lg-10 col-md-12">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <div class="form-group">
+                                <label for="apprvoal_status">
+                                  Approval Status <span class="text-danger">*</span>
+                                </label>
+                                <select class="select form-control" aria-label="Approval Status" name="apprvoal_status" id="apprvoal_status">
+                                  <option value="">Select</option>
+                                  <option value="1" {% if bidder.review_information.is_approved == 1 %}selected{% endif %}>Pending</option>
+                                  <option value="2" {% if bidder.review_information.is_approved == 2 %}selected{% endif %}>Approved</option>
+                                  <option value="3" {% if bidder.review_information.is_approved == 3 %}selected{% endif %}>Declined</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="col-md-12">
+                              <div class="form-group">
+                                <label for="note_for_buyer">
+                                  Note about buyer
+                                </label>
+                                <textarea class="form-control" name="note_for_buyer" id="note_for_buyer" placeholder="Enter note about buyer">{{ bidder.review_information.seller_comment|default:'' }}</textarea>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div><!-- End .panel -->
+
+              <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingTwo">
+                    <h4 class="panel-title">
+                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven" class="collapsed">
+                          Bidder Registration History
+                          <span class="icon"></span>
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseSeven" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                    <div class="panel-body">
+                      <div class="table-responsive">
+                        <table class="table table-scroll biddr-history" cellpadding="0" cellspacing="0" width="100%" data-table="Bidder Registration Table" role="table">
+                          <thead>
+                            <tr role="row">
+                              <th role="columnheader" scope="col">
+                                #
+                              </th>
+                              <th role="columnheader" scope="col">
+                                Property Name
+                              </th>
+                              <th role="columnheader" scope="col">
+                                Bid Approval
+                              </th>
+                              <th role="columnheader" scope="col">
+                                Note
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          {% if bidder.registration_history %}
+                          {% for history in bidder.registration_history %}
+
+                            <tr role="row">
+                              <th role="columnheader" scope="row">
+                                {{ forloop.counter }}
+                              </th>
+                              <td role="rowheader">
+                                {{ history.property_name|default:'' }}, {{ history.state|default:'' }}, {{ history.community|default:'' }}
+                              </td>
+                              <td role="rowheader">
+                                <span class="badge {% if history.is_approved|lower == 'pending' %}badge-warning{% elif history.is_approved|lower == 'approved' %}badge-success{% else %}badge-danger{% endif %}">{{ history.is_approved|default:'' }}</span>
+                              </td>
+                              <td role="rowheader">
+                                {{ history.seller_comment|default:'-' }}
+                              </td>
+                            </tr>
+                          {% endfor %}
+                          {% endif %}
+                          </tbody>
+                        </table>
+                      </div><!-- End .customscroll -->
+                    </div>
+                </div>
+              </div><!-- End .panel -->
+
+
+            </div><!-- panel-group -->
+            </div><!-- End .customscroll -->
+            </form>
+
+            <div class="clearfix pt30">
+              <button type="button" id="submitBidder" class="btn btn-primary">Save</button>
+              <button type="button" id="submitBidderExit" class="btn btn-primary">Save & Exit</button>
+              <a href="/admin/bidder-registration/" class="btn btn-primary-bdr">Cancel</a>
+            </div>
+
+          </div><!-- End .col-md-10 -->
+        </div><!-- End .row -->
+      </div><!-- End .dashboard-body -->
+<div id="confirmBidderDocDeleteModal" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-sm" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Delete Confirmation</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <input type="hidden" name="popup_section" id="popup_section" value=""/>
+                <input type="hidden" name="popup_image_id" id="popup_image_id" value=""/>
+                <input type="hidden" name="popup_image_name" id="popup_image_name" value=""/>
+                <div class="modal-body">
+                  <p class="font15 center">
+                    Are you sure you want to delete?
+                  </p>
+                  <div class="clearfix center">
+                    <button type="button" class="btn btn-primary-bdr del_bidder_doc" id="del_bidder_doc_false">No</button> <button type="button" class="btn btn-primary del_bidder_doc" id="del_bidder_doc_true">Yes</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- End .logoutModal -->
+{% endblock %}
+{% block js_content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.3"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=2.0"></script>
+<script type="text/javascript" src="{% static 'admin/js/bidder-registration.js' %}?v=2.0"></script>
+<script type="text/javascript" src="{% static 'admin/js/bidder_socket.js' %}?v=1.0"></script>
+{% endblock %}

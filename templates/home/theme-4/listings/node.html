@@ -1,0 +1,123 @@
+{% extends "layout/theme-4/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+    <link href="{% static 'theme-4/css/images-grid.css' %}?v=1.1" type="text/css" rel="stylesheet" />
+    <style>
+     * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+    </style>
+{% endblock %}
+{% block content %}
+{% load humanize %}
+
+<div class="body-content">
+    <h4 style="text-align:center;color:blue;">Welcome Socket Programming Theme 1</h4>
+    <h4 id="broadcast" style="text-align:center;color:red;"> </h4>
+    <h4 id="test" style="text-align:center;color:red;"> </h4>
+    <h4 id="watcher" style="text-align:center;color:red;"> </h4>
+    <h4 style="text-align:center;color:red;"> Auction Data11111</h4>
+    <h4 style="text-align:center;color:red;"> Auction Data</h4>
+    <h4 style="text-align:center;color:red;"> Auction Data</h4>
+    <h4 style="text-align:center;color:red;"> Auction Data</h4>
+    <h4 style="text-align:center;color:red;"> Auction Data</h4>
+    <h4 style="text-align:center;color:red;"> Auction Data</h4>
+    <h4 style="text-align:center;color:red;"> Auction Data</h4>
+    <h5 id="start_date" style="text-align:center;color:red;"> </h5>
+    <h5 id="end_date" style="text-align:center;color:red;"> </h5>
+    <h5 id="start_price" style="text-align:center;color:red;"> </h5>
+    <h5 id="reserve_amount" style="text-align:center;color:red;"> </h5>
+    <h5 id="bid_increments" style="text-align:center;color:red;"> </h5>
+    <h5 id="msg" style="text-align:center;color:red;"> </h5>
+
+</div><!-- end .body-content -->
+{% endblock %}
+
+{% block js_content %}
+<script type="text/javascript" src="{% static 'theme-common/js/jquery.growl.js' %}?v=4.7"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script> -->
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+
+<script>
+const newUserId = encryptUserId("9", encryptionKey);  
+const socket_domain = "{{node_url}}";
+const socket = io.connect(socket_domain, {
+    transports: ["websocket", "xhr-polling", "htmlfile", "jsonp-polling"],
+    rejectUnauthorized: false,
+    requestCert: false,
+    query: { user_id: 9 },
+    auth: { token: 'aec5a38c7cf7c111efb2384024fdd8c6'},
+});
+console.log(socket);
+socket.on("connect", () => {
+    console.log("Connected to Node.js socket server");
+});
+
+socket.on('connect_error', (err) => {
+  console.error('Connection failed:', err.message);
+});
+
+// socket.emit("joinRoom", 25);
+
+const encryptionKey = '28778ab27c641f297b7ba4705a24e281';
+const encryptedPayload = encryptUserId("9", encryptionKey);
+// socket.emit("getNotifications", {"user_id": 9});
+socket.emit("getNotifications", {"user_id": encryptedPayload});
+socket.on('getNotifications',function(data) {
+    console.log("==========Notifications");
+    console.log(data)
+    console.log("==========Notifications");
+});
+
+
+// -------------------Socket call----------------
+socket.on('newconnection',function(data) {
+    $("#broadcast").html(data.description)
+});
+
+const t_encryptionKey = '28778ab27c641f297b7ba4705a24e281';
+const t_encryptedPayload = encryptUserId("111", t_encryptionKey);
+console.log(t_encryptedPayload);
+
+socket.emit("test", [{"user_id": t_encryptedPayload, "name": "Gautam Kumar"}, {"user_id": t_encryptedPayload, "name": "Gautam"}]);
+socket.on('test',function(data) {
+    $("#test").html(data.msg)
+});
+
+socket.emit("watcher");
+socket.on('watcher',function(data) {
+    $("#watcher").html(data.no_watcher)
+});
+
+
+
+function encryptUserId(userId, key) {
+    // Convert key to WordArray and ensure it's 256 bits
+    const keyBytes = CryptoJS.enc.Utf8.parse(key).toString(CryptoJS.enc.Hex).substring(0, 64); // 32 bytes (256 bits)
+    const keyWordArray = CryptoJS.enc.Hex.parse(keyBytes);
+
+    const iv = CryptoJS.lib.WordArray.random(16);
+
+    const encrypted = CryptoJS.AES.encrypt(userId, keyWordArray, {
+      iv: iv,
+      padding: CryptoJS.pad.Pkcs7,
+      mode: CryptoJS.mode.CBC
+    });
+
+    return {
+      iv: CryptoJS.enc.Base64.stringify(iv),
+      content: encrypted.ciphertext.toString(CryptoJS.enc.Base64)
+    };
+  }
+
+</script>
+{% endblock %}

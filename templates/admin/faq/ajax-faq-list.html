@@ -1,0 +1,96 @@
+{% load static %}
+
+<div class="table-responsive">
+<table class="table jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Faq List Table" role="table">
+    <thead>
+        <tr role="row" class="headings" style="white-space: nowrap;">
+            <th class="column-title" role="columnheader" scope="col">ID </th>
+            <th class="column-title" role="columnheader" scope="col" style="width:12%">Domain Name </th>
+            <th class="column-title" role="columnheader" scope="col">Question </th>
+            <th class="column-title" role="columnheader" scope="col">Answer </th>
+            <th class="column-title" role="columnheader" scope="col">Added On </th>
+            <th class="column-title" role="columnheader" scope="col">Status </th>
+            <th class="column-title no-link last" role="columnheader" scope="col" style="width:10%"><span class="nobr">Action</span></th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% if data.total > 0 %}
+        {% for faq in data.data %}
+        <tr role="row" class="even pointer" style="white-space: nowrap;">
+            <th class=" " role="columnheader" scope="col">
+                {{ forloop.counter|add:start_index }}
+
+            </th>
+            <td role="rowheader">
+                {{faq.domain_name|default:'-'}}
+            </td>
+            <td class=" " role="rowheader">
+                {% autoescape off %}
+                {{ faq.question|striptags|truncatewords:"10" }}
+                {% if faq.question|striptags|wordcount > 10 %}
+                <a href="javascript:;" class="text-primary" data-toggle="tooltip" title="{{ faq.question|striptags|safe}}">view more</a>
+                {% endif %}
+                {% endautoescape %}
+            </td>
+            <td class=" " role="rowheader">
+                {% autoescape off %}
+                {{ faq.answer|striptags|truncatewords:"10" }}
+                {% if faq.answer|striptags|wordcount > 10 %}
+                <a href="javascript:;" class="text-primary" data-toggle="tooltip" title="{{ faq.answer|striptags|safe}}">view more</a>
+                {% endif %}
+                {% endautoescape %}
+            </td>
+            <td role="rowheader" class="convert_to_local_date" data-value="{{ faq.added_on|default:'' }}">{{faq.added_on|parse_iso|date:'m-d-Y g:i A'}}</td>
+            <td role="rowheader" class=" ">
+                <a type="button" role="button" aria-label="Status" tabindex="4" class="btn  btn-xs btn-round {% if faq.status == 1 %} btn-success {% elif faq.status == 5 %} btn-danger {% else %} btn-warning {% endif %}" id="statusText{{faq.id}}">{{faq.status_name}} </a> 
+            </td>
+            <td class="last" role="rowheader">
+                <a href="{% url 'admin-edit-faq' faq.id %}" type="button" role="button" aria-label="Edit faq" tabindex="5" class="btn btn-xs btn-round btn-primary edit-faq"><i class="fa fa-edit" aria-hidden="true" role="presentation"></i> Edit</a>
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr role="row">  
+            <td class=" " role="rowheader" colspan="7">No FAQ available </td>
+        </tr>
+    {% endif %}
+    
+    </tbody>
+</table>
+</div>
+
+{% if data.total > 0 %}
+<nav class="pagination" aria-label="Page navigation example">
+  <ul>
+    {{pagination|safe}}
+  </ul>
+</nav>
+{% endif %}
+
+{% block js_content %}
+<script type="text/javascript" src="{% static 'admin/build/js/common.js' %}"></script>
+  <script>
+  $(function() {
+      $('body').tooltip({selector: '[data-toggle="tooltip"]'});
+      $('#totalCount').html('{{data.total}}');
+
+      $('.convert_to_local_date').each(function(){
+        try{
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                //var local_date = getLocalDate(added_on.trim(), 'mm/dd/yyyy','ampm');
+                var local_date = getLocalDateFromCST(added_on.trim(), 'mm/dd/yyyy','ampm');
+                var actual_date = local_date.split(" ");
+                actual_date = actual_date[0]+' '+actual_date[1]+' '+actual_date[2];
+                $(this).html(actual_date);
+            }else{
+                $(this).html('-');
+            }
+        }catch(ex){
+            console.log(ex);
+        }
+    });
+  });
+  </script>
+{% endblock js_content %}

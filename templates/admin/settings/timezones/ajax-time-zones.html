@@ -1,0 +1,75 @@
+{% load static %}
+
+<div class="table-responsive">
+<table class="table jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Time Zone List Table" role="table">
+    <thead>
+    <tr class="headings" role="row">
+        <th class="column-title" role="columnheader" scope="col">ID </th>
+        <th class="column-title" role="columnheader" scope="col">Timezone </th>
+        <th class="column-title" role="columnheader" scope="col">Offset </th>
+        <th class="column-title" role="columnheader" scope="col"> Offset DST</th>
+        <th class="column-title" role="columnheader" scope="col">Status </th>
+        <th class="column-title no-link last" role="columnheader" scope="col" style="width:20%"><span class="nobr">Action</span>
+        </th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% if data.total > 0 %}
+        {% for time in data.data %}
+        <tr class="even pointer" role="row">
+            <th class=" " role="columnheader" scope="col">{{ forloop.counter|add:start_index }}</th>
+            <td role="rowheader">
+                {{time.timezone}}
+            </td>
+            <td role="rowheader">{{time.offset|default:'-'}}</td>
+            <td role="rowheader">
+            {{time.offset_dst}} 
+            </td>
+            <td role="rowheader">
+                {% if time.is_active %}
+                    <button type="button" class="btn  btn-xs btn-round btn-success" id="statusText{{time.id}}">Active</button> 
+                    {% else %}
+                    <button type="button" class="btn  btn-xs btn-round btn-warning" id="statusText{{time.id}}">Inactive</button> 
+                {% endif %}
+            </td>
+           <td class="last" role="rowheader"> 
+                <div class="btn-toolbar" role="toolbar" style="display:inline-flex;">
+                <form method="post" data-id="{{time.id}}" action="{% url 'admin-time-zones-status-change' %}" class="ActiveInactive" >
+                    {% csrf_token %}
+                    <input type="hidden" name="timezone_id" value="{{time.id}}">
+                    <input type="hidden" class="status-change" name="status" value="{{time.is_active|yesno:"0,1"}}">
+                    {% if time.is_active%}
+                    <button type="submit" class="btn btn-xs btn-round btn-warning"><i class="fa fa-remove" aria-hidden="true" role="presentation"></i> Deactivate</button>
+                    {% else %}
+                    <button type="submit" class="btn btn-xs btn-round btn-success"><i class="fa fa-check" aria-hidden="true" role="presentation"></i> Activate</button>
+                    {% endif %}
+                </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr role="row">  
+            <td class=" " role="rowheader">No Timezone available </td>
+        </tr>
+    {% endif %}
+    
+    </tbody>
+</table>
+</div>
+
+{% if data.total > 0 %}
+<div class="pagination ">
+    <ul >
+      {{pagination|safe}}
+    </ul>
+</div>
+{% endif %}
+{% block js_content %}
+  <script>
+  $(function() {
+    $('#totalCount').html('{{data.total}}')
+  });
+  </script>
+{% endblock %}

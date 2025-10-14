@@ -1,0 +1,158 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+
+{% block title %} Add CMS {% endblock title %}
+
+{% block styles %}
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+  
+  <div class="listing-top">
+    <div class="block">
+      <h6>Add CMS</h6>
+    </div>
+  </div>
+  
+  <div class="box">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %} alert-danger {% elif message.tags == 'success' %} alert-success {% else %} alert-info {% endif %} alert-dismissible " role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+            </button>{{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" id="addCms" action="{% url 'admin-ajax-add-cms' %}" class="form-label-left" data-parsley-validate>
+      {% csrf_token %}
+
+    <div class="row">
+
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="site">Choose Domain
+        </label>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <select class="select form-control" aria-label="Choose Domain" id="site" name="site" >
+              <option value="" selected>Choose Available Domain</option>
+              {% for obj in domain_list %}
+                  {% if obj.is_active %}
+                      <option value="{{obj.id}}">{{obj.domain_name}}</option>
+                  {% endif %}
+              {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="site">Status <span class="required">*</span>
+        </label>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <select class="select form-control" aria-label="Status" id="status" name="status" required="required" >
+              <option value="" selected>Choose Status</option>
+              {% for obj in status_list %}
+                  {% if obj.is_active %}
+                      <option value="{{obj.id}}">{{obj.status_name}}</option>
+                  {% endif %}
+              {% endfor %}
+          </select>
+        </div>
+        <a href="{% url 'admin-lookup-status' %}#add-status" target="_blank" type="button" class="btn btn-primary btn-round"> Add more <i class="fa fa-external-link" aria-hidden="true" role="presentation"></i></a>
+      </div>
+
+      <div class="col-md-12">
+        <h4>Meta Info</h4>
+      </div>
+      
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="meta_key_word">Meta Keywords <span class="required">*</span>
+        </label>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <input id="meta_key_word" class="form-control col-md-7 col-xs-12" aria-label="Meta Keywords" data-parsley-trigger="keyup" name="meta_key_word" placeholder="Enter meta keyword" required="required" type="text">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="meta_title">Meta Title <span class="required">*</span>
+        </label>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <input id="meta_title" class="form-control col-md-7 col-xs-12" aria-label="Meta Title" data-parsley-trigger="keyup" name="meta_title" placeholder="Enter meta title" required="required" type="text">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="meta_description">Meta Description <span class="required">*</span>
+        </label>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <input type="text" id="meta_description" name="meta_description" aria-label="Meta Description" data-parsley-trigger="keyup" required="required" class="form-control col-md-7 col-xs-12" placeholder="Enter meta description">
+        </div>
+      </div>
+      
+      <div class="col-md-12">
+        <h4>Page Info</h4>
+      </div>
+
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="page_title">Page Title <span class="required">*</span>
+        </label>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <input id="page_title" class="form-control col-md-7 col-xs-12" aria-label="Page Title" data-parsley-trigger="keyup" name="page_title" placeholder="Enter page title" required="required" type="text">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="slug">Slug <span class="required">*</span>
+        </label>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <input id="slug" class="form-control col-md-7 col-xs-12" aria-label="Slug" data-parsley-trigger="keyup" name="slug" placeholder="Will be genertaed automatically based on page title" required="required" type="text">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="page_content">Page Content <span class="required">*</span>
+        </label>
+        <div class="col-md-8 col-sm-8 col-xs-12">
+          <textarea class="form-control description" id="page_content" aria-label="Page Content" name="page_content" required="required" rows="3" placeholder="Enter page content..." style="height: 120px;" spellcheck="true"></textarea>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="lh46 col-md-3 col-sm-3 col-xs-12" for="page_content_ar">Page Content In Arabic <span class="required">*</span>
+        </label>
+        <div class="col-md-8 col-sm-8 col-xs-12">
+          <textarea class="form-control description" id="page_content_ar" aria-label="Page Content In Arabic" name="page_content_ar" required="required" rows="3" placeholder="Enter page content..." style="height: 120px;" spellcheck="true"></textarea>
+        </div>
+      </div>
+
+      <div class="clearfix">
+        <div class="col-md-3 col-sm-3 col-xs-12"></div>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+          <button type="reset" role="button" class="btn btn-primary-bdr">Reset</button>
+          <button id="submitAddCms" role="button" type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </div>
+    </div>
+    </form>
+  </div>
+          
+</div>
+{% endblock %}
+
+{% block js_content %}
+  <script>
+  $(function() {
+      setTimeout(function() {
+          $(".alert").hide();
+      }, 3000);
+
+      $('.select').chosen();
+  });
+  </script>
+  <script type="text/javascript" src="{% static 'admin/build/js/common.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/build/js/add-cms.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/vendors/tinymce/tinymce.min.js' %}"></script>
+
+
+
+{% endblock %}

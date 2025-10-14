@@ -1,0 +1,73 @@
+{% load static %}
+{% load dashboard_extra %}
+{% load humanize %}
+{% if temp_new_bid_history %}
+{% for bids in temp_new_bid_history %}
+    <tr role="row">
+        <td role="rowheader">
+        {{ forloop.counter|add:start_index }}
+        </td>
+        <td role="rowheader">
+        {% if bids.bidder_detail %}
+        <a href="javascript:void(0);" data-id="{{bids.id}}" class="blue-text show-detailed-info bid_total_data" onclick="show_hide_data({{bids.id}})">
+            {{bids.bidder_detail.first_name}} {{bids.bidder_detail.last_name}} <i class="fas fa-chevron-down" aria-hidden="true" role="presentation" id="arrowPositionBidder{{bids.id}}"></i>
+        </a>
+        
+        <p id="bidding-record-data{{bids.id}}" style="display:none">
+            {% if bids.bidder_detail %}
+                +{{bids.bidder_detail.phone_country_code|default:971}} {{bids.bidder_detail.phone_no|default:''|format_phone}}
+            {% endif %}
+            <br>
+            {% if bids.bidder_detail %}
+                <a href="mailto:{{bids.bidder_detail.email}}">{{bids.bidder_detail.email}}</a>
+            {% endif %}
+            <br>
+            {{bids.bidder_detail.ip_address|default:'-'}}
+        </p>
+        {% endif %}
+        </td>
+        {% comment %}
+        <td role="rowheader">
+        {% if bids.bidder_detail %}
+        <a href="mailto:{{bids.bidder_detail.email}}">{{bids.bidder_detail.email}}</a>
+        {% endif %}
+        </td>
+        <td role="rowheader">
+        {% if bids.bidder_detail %}
+        {{bids.bidder_detail.phone_no|default:''|format_phone}}
+        {% endif %}
+        </td>
+        {% endcomment %}
+        <td role="rowheader">
+        ${{bids.start_bid|intcomma|default:'0'}}
+        </td>
+        <!-- <td role="rowheader">
+        ${{bids.max_bid|intcomma|default:'0'}}
+        </td> -->
+        <!-- <td role="rowheader">
+         <a onclick="" class="red-text">
+            {{bids.bids|intcomma|default:'0'}}
+        </a>
+        </td> -->
+        </td>
+        {% comment %}
+        <td role="rowheader">
+        ${{bids.bid_amount|intcomma|default:'0'}}
+        </td>
+        <td role="rowheader">
+        {{bids.ip_address|default:'-'}}
+        </td>
+        {% endcomment %}
+        <td class="convert_to_local_date_time_milis" data-value="{{ bids.bid_time|default:'' }}">
+        {{bids.bid_time}}
+        </td>
+        {% comment %}
+        <td role="rowheader">{{bids.bidder_detail.ip_address|default:'-'}}</td>
+        {% endcomment %}
+        <td role="rowheader">Approved</td>
+    </tr>
+{% endfor %}
+{% endif %}
+{% block js_content %}
+<script type="text/javascript" src="{% static 'admin/js/listing.js' %}?v=6.3"></script>
+{% endblock %}

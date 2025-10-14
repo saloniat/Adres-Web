@@ -1,0 +1,33 @@
+{% load static %}
+{% load dashboard_extra %}
+{% load humanize %} 
+{% if bid_history %} 
+{% for bids in bid_history %}
+<tr role="row" class="{% if bids.is_forefit or bids.is_retracted %} forefit_bid {% endif %}">
+    <td role="rowheader">
+    {% if bids.bidder_detail %}
+        <a href="javascript:void(0);" data-id="{{bids.id}}" class="blue-text show-bidder-info"><strong><span class="{% if bids.is_retracted %} bidinfo {% endif %}">{{bids.bidder_detail.first_name}}</span> {% if bids.is_retracted %} (Retracted) {% elif bids.start_bid == bids.max_bid %} (Highest Bid) {% endif %}&nbsp;<i {% if forloop.counter0 == 0  %}class="fas fa-chevron-up" {% else %}class="fas fa-chevron-down"{% endif %} id="arrowPositionBidder{{bids.id}}"></i></strong></a><br>
+        <p id="showBidderinfoBidder{{bids.id}}" {% if forloop.counter0 != 0  %}style="display:none"{% endif %}>
+            <span class="blue-text">+{{bids.bidder_detail.phone_country_code|default:971}} {{bids.bidder_detail.phone_no|default:''|format_phone}}</span><br>
+            <span class="blue-text">{{bids.bidder_detail.email}}</span><br>
+            {{bids.bidder_detail.ip_address|default:''}}
+        </p>
+    {% else %}
+    -
+    {% endif%}
+    </td>
+    <td role="rowheader">AED {{bids.start_bid|convert_num|intcomma|default:'0'}} {% if bids.is_forefit %} (Forefit) {% endif %}</td>
+    <td role="rowheader" class="convert_to_local_date_time_milis" data-value="{{ bids.bid_time|default:'' }}"></td>
+</tr>
+
+{% endfor %} 
+{% else %}
+<div class="block-item">
+  <div class="item fullwidth"><img src="{% static 'admin/images/no-data-image.png' %}" alt="No Data Found" role="img" class="center mb0" /></div>
+</div>
+{% endif %}
+{% block js_content %}
+    <!-- <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.7"></script> -->
+    <script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=4.7"></script>
+    <script type="text/javascript" src="{% static 'admin/js/auction-dashbaord.js' %}?v=8.9.0"></script>
+{% endblock %}

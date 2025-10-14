@@ -1,0 +1,353 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+{% endblock %}
+{% block content %}
+{% load tz %}
+{% load humanize %}
+
+<div class="dashboard-body">
+    <div class="row">
+        <div class="col-md-12 col-sm-12">
+
+            <div class="listing-top">
+                <div class="block">
+                    <h6>
+                        Projects
+                    </h6>
+                </div>
+
+                <div class="block rgt" id="download_btn_section">
+                    <form action="" class="search-field">
+                        <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
+                        <input type="text" class="form-control input-sm sugesstion_input" aria-label="Search" placeholder="Search" name="proj_search" id="proj_search" value="{{ search|default:'' }}">
+                        <button type="button" id="searchProjectBtn" tabindex="1" class="btn btn-primary btn-xs" onclick="projectListingSearch(1);">Search</button>
+                    </form>
+                    <div class="btns">
+                        <a href="/admin/add-project-info/" tabindex="3" class="btn btn-primary btn-xs add_project"><i class="fas fa-plus" aria-hidden="true" role="presentation"></i> Add New Project</a>
+                    </div>
+                    <div class="btns">
+                        &#x00A0;&#x00A0;<a href="javascript:void(0)" onclick="project_csv_download()" class="btn btn-primary btn-xs"></i>Download CSV</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="listing-bottom" >
+                {% if request.session.user_type == 2 or request.session.user_type == 4 %}
+                    <div class="block" >
+                        <select class="select form-control" aria-label="All Developers" tabindex="7" name="filter_developer" id="filter_developer" onchange="projectListingSearch(1);">
+                            <option value="">All Developers</option>
+                            {% for developer in developer_list %}
+                            <option value="{{ developer.id }}" {% if developer_id == developer.id %} selected {% endif %}>{{ developer.first_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                {% if request.session.user_type == 2 or request.session.user_type == 4 or request.session.user_type == 6 %}
+                    <div class="block" >
+                        <select class="select form-control" aria-label="All Employee" tabindex="7" name="filter_employee" id="filter_employee" onchange="projectListingSearch(1);">
+                            <option value="">All Employee</option>
+                            {% for employee in employee_list %}
+                            <option value="{{ employee.id }}" {% if employee_id == employee.id %} selected {% endif %}>{{ employee.first_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                <div class="block project-type">
+                    <select class="select form-control" aria-label="All Projects" tabindex="8" name="filter_project_type" id="filter_project_type" onchange="projectListingSearch(1);">
+                        <option value="">All Projects</option>
+                        {% for item in project_type_list %}
+                        <option value="{{ item.id }}" {% if project_type == item.project_type %}selected{% endif %}>{{ item.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="block">
+                    <select class="select form-control" aria-label="All Status" tabindex="10" name="proj_filter_status" id="proj_filter_status" onchange="projectListingSearch(1);">
+                        <option value="">Project Status</option>
+                        {% if project_status_list %}
+                        {% for item in project_status_list %}
+                        <option value="{{ item.id }}">{{ item.status_name }}</option>
+                        {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="block">
+                    <select class="select form-control" aria-label="All Status" tabindex="10" name="proj_status" id="proj_status" onchange="projectListingSearch(1);">
+                        <option value="" {% if status == ""%} selected {% endif %}>All Status</option>
+                        <option value="1" {% if status == 1%} selected {% endif %}>Active</option>
+                        <option value="2">Inactive</option>
+                    </select>
+                </div>
+                <div class="block" style="min-width: 130px;">
+                    <select class="select form-control" aria-label="Record" tabindex="11" name="proj_num_record" id="proj_num_record" onchange="projectListingSearch(1);">
+                        <option value="">Record per page</option>
+                        <option value="10" {% if page_size == 10 %}selected{% endif %}>10 Project</option>
+                        <option value="20" {% if page_size == 20 %}selected{% endif %}>20 Project</option>
+                        <option value="30" {% if page_size == 30 %}selected{% endif %}>30 Project</option>
+                        <option value="40" {% if page_size == 40 %}selected{% endif %}>40 Project</option>
+                        <option value="50" {% if page_size == 50 %}selected{% endif %}>50 Project</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="listing-table {% if auction_id == 1 or auction_id == 2 %}classic{% elif auction_id == 4 %}traditonal{% elif auction_id == 6 %}live{% elif auction_id == 7 %}highest{% else %}{% endif %}" id="tbl_project_list">
+                <input type="hidden" name="counter_num" id="counter_num" value="{{ sno|default:1 }}">
+                <div class="" id="project_list">
+                    {% if project_list|length > 0 %}
+                    {% if project_list|length > 3 %}
+                    {% define_var project_list|length|add:'-1' as first_row %}
+                    {% define_var project_list|length as second_row %}
+                    {% else %}
+                    {% define_var 0 as first_row %}
+                    {% define_var 0 as second_row %}
+                    {% endif %}
+                    {% for project in project_list %}
+                    <div class="new-listing_blocks {% if first_row > 0 and second_row > 0 %}{% if forloop.counter == first_row or forloop.counter == second_row %}last-row{% endif %}{% endif %}" data-auction-type="{{ project.sale_by_type }}" data-property="{{ project.id }}" data-index="{{ forloop.counter0|add:sno }}" rel_id="{{ project.id }}" row_id="row_id_{{ project.id }}" id="row_id_{{ project.id }}">
+                        <ul class="bottom">
+                            <li>
+                                Developer Name : {{ project.developer_name }}
+                            </li>
+                            <li>
+                                Registration Date |
+                                <span class="convert_to_local_date_time_cst" data-value="{{ project.registration_date|default:'' }}"></span>
+                            </li>
+
+                            <li>
+                                <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i>Completion Date |
+                                <span class="convert_to_local_date_time_cst" data-value="{{ project.completion_date|default:'' }}"></span>
+                            </li>
+
+                            <li>
+                                <i class="fa-solid fa-calendar-days" aria-hidden="true" role="presentation"></i>Project Created |
+                                <span class="convert_to_local_date_time_cst" data-value="{{ project.created_date|default:'' }}"></span>
+                            </li>
+                        </ul>
+
+                        <ul class="top">
+                            <li>
+                                <figure>
+                                    <img class="slide-fixed" src="{% static 'admin/images/transparent.png' %}" alt="real estate sales">
+                                    <img class="slide-img" src="{% if project.project_image.0.file_name %}{{ azure_blob_url }}{{ project.project_image.0.bucket_name }}/{{ project.project_image.0.file_name }}{% else %}{% static 'admin/images/property-default-img.png' %}{% endif %}" alt="project image">
+                                </figure>
+                                <figcaption>
+                                    <div class="block-status">
+                                        <div class="item">
+                                            <!-- <div class="display_status" id="display_status_{{ project.id }}">
+                                              <span class="badge {% if project.status_id == 1 %} badge-success {% elif project_status_id.status_id == 2 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
+                                                {{ project.status}}
+                                              </span>
+                                            </div>
+                                            <div class="{% if request.session.is_broker %}change_status{% endif %}" id="change_status_{{ project.id }}" style="display:none;">
+                                                <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ project.id }}" onchange="change_project_status({{ project.id }},this)">
+                                                    {% if status_list %}
+                                                    {% for item in status_list %}
+                                                    <option value="{{ item.id }}" {% if item.id == project.status_id %}selected{% endif %}>{{ item.status_name }}</option>
+                                                    {% endfor %}
+                                                    {% endif %}
+                                                </select>
+                                            </div> -->
+                                            {% if request.session.is_broker or request.session.user_type == 4 %}
+                                                <div class="{% if request.session.is_broker or request.session.user_type == 4%}display_status{% endif %}" id="display_status_{{ project.id }}">
+                                                    <span class="badge {% if project.status_id == 1 %} badge-success{% elif project.status_id == 2 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
+                                                    {{ project.status }}
+                                                    </span>
+                                                </div>
+                                                <div class="{% if request.session.is_broker or request.session.user_type == 4%}change_status{% endif %}" id="change_status_{{ project.id }}" style="display:none;">
+                                                    <select class="select form-control listing_change_status" aria-label="Status" name="listing_change_status" id="listing_change_status_{{ project.id }}" onchange="change_project_status({{ project.id }},this)">
+                                                    {% if status_list %}
+                                                    {% for item in status_list %}
+                                                        <option value="{{ item.id }}" {% if item.id == project.status_id %}selected{% endif %}>{{ item.status_name }}</option>
+                                                    {% endfor %}
+                                                    {% endif %}
+                                                    </select>
+                                                </div>
+                                            {% else %}  
+                                                <div class="" id="display_status_{{ project.id }}">
+                                                    <span class="badge {% if project.status_id == 1 %} badge-success{% elif project.status_id == 2 %} badge-danger{% else %}badge-danger{% endif %}" style="cursor:pointer;">
+                                                    {{ project.status }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="item">
+                                            <span class="badge badge-info">
+                                                {{ project.project_type|join:", "|default:'' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h6>
+                                        <a href="#">
+                                            {% if project.project_name %}<span>{{project.project_name}}</span>{% endif %}
+                                            <span class="blue-text" title="{{ project.name }}">{{ project.name }}</span>
+                                        </a>
+                                    </h6>
+                                    <p class="location">
+                                        <i class="fas fa-map-marker-alt" aria-hidden="true" role="presentation"></i> {{ project.project_location }}
+                                    </p>
+                                    <div class="approval-status">
+                                        {% if request.session.is_broker or request.session.user_type == 4 %}
+                                        <div class="bdr">
+                                            <strong><label for="">Approval Status</label></strong>
+                                            <div class="{% if request.session.is_broker or request.session.user_type == 4 %}approval_status{% endif %}" id="approval_status_{{ project.id }}">
+                                            <span class="badge {% if project.is_approved %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                                              {{ project.approval }}
+                                            </span>
+                                            </div>
+                                            <div class="{% if request.session.is_broker or request.session.user_type == 4 %}change_approval{% endif %}" id="change_approval_{{ project.id }}" style="display:none;">
+                                                <select class="select form-control listing_change_approval" aria-label="Approval" name="listing_change_approval" id="listing_change_approval_{{ project.id }}" onchange="change_apporval_status({{ project.id }}, this)">
+                                                    <option value="1" {% if project.is_approved == True %}selected{% endif %}>Approved</option>
+                                                    <option value="0" {% if project.is_approved == False %}selected{% endif %}>Not Approved</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="bdr">
+                                            <strong><label for="">Approval Status</label></strong>
+                                            <div class="{% if request.session.is_broker %}approval_status{% endif %}" id="approval_status_{{ project.id }}">
+                                              <span class="badge {% if project.is_approved %} badge-success{% else %}badge-warning{% endif %}" style="cursor:pointer;">
+                                                {{ project.approval }}
+                                              </span>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                </figcaption>
+                            </li>
+                            <li>
+                                <div class="action-icon" {% if forloop.first %} id="first_row_listing" {% endif %}>
+                                <span class="view-list">
+                          <i class="fa-solid fa-ellipsis" aria-hidden="true" role="presentation"></i>
+                          <ul>
+                            <li>
+                              <a href="/admin/add-project-info/?project_id={{ project.id }}"><i class="far fa-edit" aria-hidden="true" role="presentation"></i> Edit Project</a>
+                            </li>
+                            <!-- <li>
+                              <a href="javascript:void(0)" onclick="project_delete_confirmation({{ project.id }});"><i class="fas fa-trash" aria-hidden="true" role="presentation"></i> Delete Project</a>
+                            </li> -->
+                          </ul>
+                        </span>
+                                </div>
+                                <ol class="circle-high">
+                                    <li>
+                                        <div class="icon"><img src="{% static 'admin/images/views-icon.svg' %}" alt="project projects"></div>
+                                        <h4 class="view-btn">
+                                            <a href="/admin/listing/?p_i={{project.id}}">
+                                                {{ project.no_of_property|default:0}}
+                                            </a>
+                                        </h4>
+                                        <h6>
+                                            Listing
+                                        </h6>
+                                    </li>
+                                </ol>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+
+                    <div class="listing-table">
+                        <div class="new-listing_blocks ">
+                            <ul class="bottom">
+                                <li>
+                                    No data Available
+                                </li>
+                            </ul>
+                            <ul class="top">
+                                <li class="fullwidth">
+                                    <img src="{% static 'admin/images/no-data-image.png' %}" alt="No Data Found" role="img" class="center mb0" />
+                                </li>
+                            </ul>
+
+                        </div><!-- End .block-item -->
+                    </div><!-- End .create-table -->
+
+                    {% endif %}
+                </div><!-- End .block -->
+            </div><!-- End .create-table -->
+
+            <div class="pagination">
+                <ul id="proj_listing_pagination_list">
+                    {{ pagination_html }}
+                </ul>
+            </div><!-- End .pagination -->
+
+        </div><!-- End .col-md-10 -->
+    </div><!-- End .row -->
+</div><!-- End .dashboard-body -->
+
+<div id="confirmProjectDeleteModal" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="font15 center">
+                    Are you sure you want to delete this listing?
+                </p>
+                <div class="clearfix center">
+                    <button class="btn btn-secondary del_prop_btn" id="del_prop_true" onclick="delete_project();">Yes</button><button class="btn btn-primary del_prop_btn" id="del_prop_false">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- End .logoutModal -->
+
+<div id="confirmPropertyDeleteModal" class="modal centered-modal personalModalwrap" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete Confirmation</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="font15 center">
+            Are you sure you want to delete this listing?
+          </p>
+          <div class="clearfix center">
+            <button class="btn btn-secondary del_prop_btn" id="del_prop_true" onclick="delete_project();">Yes</button><button class="btn btn-primary del_prop_btn" id="del_prop_false">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- End .logoutModal -->
+
+<div class="overlay" style="display:none;">
+    <div class="loader">Loading...</div>
+</div>
+{% endblock %}
+{% block js_content %}
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/tableHeadFixer.js' %}?v=1.1"></script>
+<script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom.js' %}?v=1.1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.3"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/pagination.js' %}?v=1.0"></script>
+<script type="text/javascript" src="{% static 'admin/js/autosuggestion.js' %}?v=2.0"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom-date-time.js' %}?v=6.2"></script>
+<script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=1.8"></script>
+<!-- <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script> -->
+<script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
+
+<script>
+    var is_first_login = {{request.session.is_first_admin_login}};
+    // var developer_id = {{request.GET.d_i|default:""}};
+    // $('#filter_developer').val(developer_id).trigger("chosen:updated");
+</script>
+{% endblock %}

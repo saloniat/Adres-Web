@@ -1,0 +1,488 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+    <form name="project_info_frm" id="project_info_frm" method="post" autocomplete="off">
+        {% csrf_token %}
+        <input type="hidden" name="project_id" id="project_id" value="{{ request.GET.project_id }}" />
+        <input type="hidden" id="auctionId" value="{{ project_details.property_auction_data.0.id|default:'' }}" />
+        <input type="hidden" name="next_url" id="next_url" value="" />
+        <input type="hidden" name="step" id="step" value="1" />
+        <!-- <input type="hidden" id="status" name="status" value="{{ project_details.status|default:'2' }}" /> -->
+        <input type="hidden" id="is_approved" name="is_approved" value="{{ project_details.is_approved|default:'0' }}" />
+        <div class="row">
+            <div class="col-md-12 col-sm-12">
+                <div class="table-heading">
+                    <div class="item">
+                        <h6>
+                            <strong>Add Project </strong>
+                        </h6>
+                    </div>
+                </div>
+
+                <div class="website-plan">
+                    <div class="steps">
+                        <ul class="addproject-progressbar">
+                            <li class="active">
+                                <a role="link" href="{% if request.GET.project_id %}/admin/add-project-info/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon property-icon"></div>
+                      </span>
+                                </a>
+                                <span class="name">Project Information</span>
+                            </li>
+                            <li>
+                                <a role="link" href="{% if request.GET.project_id %}/admin/project-map-view/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon map-icon"></div>
+                      </span>
+                                </a>
+                                <span class="name">Map & Street View</span>
+                            </li>
+                            <li>
+                                <a role="link" href="{% if request.GET.project_id %}/admin/project-photo-video/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon photos-icon"></div>
+                      </span>
+                                </a>
+                                <span class="name">Project Photos & Videos</span>
+                            </li>
+                            <li>
+                                <a role="link" href="{% if request.GET.project_id %}/admin/project-document-floor-plan/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon document-icon"></div>
+                      </span>
+                                </a>
+                                <span class="name">Floor Plans & Documents</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="customscroll bidder-accordian">
+                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+                        <div class="panel panel-default panel-active">
+                            <div class="panel-heading" role="tab" id="headingOne">
+                                <h4 class="panel-title">
+                                    <a tabindex="8" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne" class="collapsed">
+                                        Project General Information
+                                        <span class="icon"></span>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="project_name">Project Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="project_name" id="project_name" aria-label="Enter Project Name" class="form-control" placeholder="Enter Project Name" value="{{ project_details.project_name|default:'' }}"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="project_name_ar">Project Name In Arabic<span class="text-danger">*</span></label>
+                                                <input type="text" name="project_name_ar" id="project_name_ar" aria-label="Enter Project Name In Arabic" class="form-control" placeholder="Enter Project Name In Arabic" value="{{ project_details.project_name_ar|default:'' }}"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="project_type">Project Type <span class="text-danger">*</span></label>
+                                                <select name="project_type" id="project_type" aria-label="Project Type" class="select form-control new_feature_dropdown" multiple>
+                                                    {% if project_type_list %}
+                                                    {% for item in project_type_list %}
+                                                    <option value="{{ item.id }}" {% if item.id in project_details.project_type %}selected{% endif %}>{{ item.name }}</option>
+                                                    {% endfor %}
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <div class="form-group">
+                                                <label for="country">Country <span class="text-danger">*</span></label>
+                                                <select class="select form-control project_country" aria-label="Country" name="country" id="country">
+                                                    <option value="">Select</option>
+                                                    {% for country in country_list %}
+                                                    <option value="{{ country.id }}" data-short-code="{{ country.alpha2_code }}" {% if country_id == country.id %} selected {% endif %}>{{ country.country_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="city">City <span class="text-danger">*</span></label>
+                                                <select name="city" aria-label="City" id="city" class="select form-control">
+                                                    <option value="">Select</option>
+                                                    {% for state in state_list %}
+                                                    <option value="{{ state.id }}" data-short-code="{{ state.iso_name }}" {% if state.id == project_details.city %}selected{% endif %}>{{ state.state_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6">
+                                            <div class="form-group">
+                                              <label for="municipality">Municipality <span class="text-danger">*</span></label>
+                                              <select class="municipality form-control select" aria-label="Municipality" name="municipality" id="municipality">
+                                                <option value="">Select Municipality</option>
+                                                {% for muncip in municipality %}
+                                                  <option value="{{ muncip.id }}" {% if project_details.municipality == muncip.id %} selected {% endif %}>{{ muncip.municipality_name }}</option>
+                                                {% endfor %}
+                                              </select>
+                                            </div>
+                                          </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="district">District <span class="text-danger">*</span></label>
+                                                <select class="district form-control select" aria-label="District" name="district" id="district">
+                                                <option value="">Select District</option>
+                                                {% for dist in district %}
+                                                    <option value="{{ dist.id }}" {% if project_details.district == dist.id %} selected {% endif %}>{{ dist.district_name }}</option>
+                                                {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="community">Community <span class="text-danger">*</span></label>
+                                                <span class="icon icon-community"></span>
+                                                <input type="text" name="community" placeholder="Enter Community Name" aria-label="Enter Community Name" class="form-control" id="community" value="{{ project_details.community|default:'' }}" />
+                                            </div>
+                                        </div> -->
+                                        <div class="col-lg-6 col-md-6 community_text" {% if project_details.city == 83 %} style="display: none;" {% endif %}>
+                                            <div class="form-group">
+                                              <label for="community">Community <span class="text-danger">*</span></label>
+                                              <input class="form-control community" type="text" name="community" id="community" placeholder="Enter Community" value="{{project_details.community|default:''}}" />
+                                            </div>
+                                        </div>
+                                          
+                                          <div class="col-lg-6 col-md-6 community_dropdown" {% if project_details.city != 83 %} style="display: none;" {% endif %}>
+                                            <div class="form-group">
+                                              <label for="commuiy">Community <span class="text-danger">*</span></label>
+                                              <select class="community_data form-control select" aria-label="Community" name="community_data" id="community_data">
+                                                <option value="">Select Community</option>
+                                                {% for com in community %}
+                                                  <option value="{{ com.community_name }}" {% if project_details.community == com.community_name %} selected {% endif %}>{{ com.community_name }}</option>
+                                                {% endfor %}
+                                              </select>
+                                            </div>
+                                          </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="neighborhood">Neighborhood</label>
+                                                <span class="icon icon-neighborhood"></span>
+                                                <input type="text" name="neighborhood" placeholder="Enter Neighborhood Name" aria-label="Enter Neighborhood Name" class="form-control" id="neighborhood" value="{{ project_details.neighborhood|default:'' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="address_one">Address <span class="text-danger">*</span></label>
+                                                <input type="text" name="address_one" aria-label="Address" id="address_one" class="form-control" placeholder="Enter your address" value="{{ project_details.address_one|default:'' }}"/>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="postal_code">Postal Code<span class="text-danger">*</span></label>
+                                                <input type="number" onkeypress="return event.charCode >= 48 && event.charCode <= 57" name="postal_code" aria-label="Postal Code" id="postal_code" class="form-control" maxlength="5" placeholder="Enter your Postal Code" value="{{ project_details.postal_code|default:'' }}">
+                                            </div>
+                                        </div> -->
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="registration_number">Registration Number <span class="text-danger">*</span></label>
+                                                <input type="text" name="registration_number" id="registration_number" aria-label="Enter Registration Number" class="form-control" placeholder="Enter Registration Number" value="{{ project_details.registration_number|default:'' }}"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="virtual_registration_date">Registration Date <span class="text-danger">*</span></label>
+                                                <div class='input-group date' id='datetimepicker1'  data-value="2024-11-09T00:21:00Z">
+                                                    <input type='text' {% if todays_date > start_date %} readonly="true" {% endif %} class="form-control cls_rd" name="virtual_registration_date" id="virtual_registration_date" placeholder="mm-dd-yyyy" value="">
+                                                    <span class="input-group-addon">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                    <input autocomplete="off" {% if todays_date > start_date %} readonly="true" {% endif %} type='hidden' class="form-control cls_rd" name="registration_date_local" id="registration_date_local" />
+                                                    <input autocomplete="off" {% if todays_date > start_date %} readonly="true" {% endif %} type='hidden' class="form-control cls_rd" name="registration_date" id="registration_date" value="{{ project_details.registration_date|default:'' }}"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="virtual_completion_date">Completion/Handover Date <span class="text-danger">*</span></label>
+                                                <div class='input-group date' id='datetimepicker2' data-value="{{ project_details.completion_date|default:'' }}">
+                                                    <input type='text' class="form-control" name="virtual_completion_date" id="virtual_completion_date" placeholder="mm-dd-yyyy">
+                                                    <span class="input-group-addon">
+                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                    </span>
+                                                    <input autocomplete="off" type='hidden' class="form-control" name="completion_date_local" id="completion_date_local" />
+                                                    <input autocomplete="off" type='hidden' class="form-control" name="completion_date" id="completion_date" value="{{ project_details.completion_date|default:'' }}"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6 starting_price">
+                                            <div class="form-group">
+                                                <label for="starting_price">Starting Price (AED)<span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" aria-label="Starting Price" name="starting_price" id="starting_price" placeholder="Enter Starting Price" value="{% if project_details.starting_price %}{{ project_details.starting_price|convert_num|intcomma|default:'' }}{% else %}{% endif %}" maxlength="16"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="total_units">Total Units</label>
+                                                <input type="number" onkeypress="return event.charCode >= 48 && event.charCode <= 57" name="total_units" placeholder="Enter Total Units" aria-label="Total Units" class="form-control" id="total_units" min="0" value="{{ project_details.total_units|default:'' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="units_for_sale">Units For Sale</label>
+                                                <input type="number" onkeypress="return event.charCode >= 48 && event.charCode <= 57" name="units_for_sale" placeholder="Enter Units For Sale" aria-label="Units For Sale" class="form-control" id="units_for_sale" min="0" value="{{ project_details.units_for_sale|default:'' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="units_type">Units Type <span class="text-danger">*</span></label>
+                                                <input type="text"  name="units_type" placeholder="Enter Unit Type" aria-label="Enter Unit Type" class="form-control" id="units_type" value="{{ project_details.units_type|default:'' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="property_size">Property Size (Square Footage) <span class="text-danger">*</span></label>
+                                                <!-- <input type="number" onkeypress="return event.charCode >= 48 && event.charCode <= 57" name="property_size" placeholder="Enter Property Size (Square Footage)" aria-label="Enter Property Size (Square Footage)" class="form-control" id="property_size" value="{{ project_details.property_size|default:'' }}" /> -->
+                                                 <input type="number" name="property_size" placeholder="Enter Property Size (Square Footage)" aria-label="Enter Property Size (Square Footage)" class="form-control" id="property_size" value="{{ project_details.property_size|default:'' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="project_status">Project Construction Status <span class="text-danger">*</span></label>
+                                                <select name="project_status" aria-label="Project Construction Status" id="project_status" class="select form-control">
+                                                    <option value="">Select</option>
+                                                    {% if project_status_list %}
+                                                    {% for item in project_status_list %}
+                                                    <option value="{{ item.id }}" {% if item.id == project_details.project_status_id %}selected{% endif %}>{{ item.status_name }}</option>
+                                                    {% endfor %}
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-6">
+                                            <div class="form-group">
+                                                <label for="main_project_status">Project Status <span class="text-danger">*</span></label>
+                                                <select name="main_project_status" aria-label="Project Status" id="main_project_status" class="select form-control">
+                                                    <option value="">Select</option>
+                                                    <option value="1" {% if project_details.status == 1 %}selected{% endif %}>Active</option>
+                                                    <option value="2" {% if project_details.status == 2 %}selected{% endif %} >InActive</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-6">
+                                            <label class="">
+                                                Is Featured project?
+                                            </label>
+                                            <div class="form-group">
+                                                <div class="lh46">
+                                                    <input id="is_featured_proj_true" type="radio" name="is_featured" value="1" class="css-radio" {% if project_details.is_featured == 1 %}checked{% endif %}>
+                                                    <label for="is_featured_proj_true" class="radio-label">Yes</label>
+                                                    &nbsp; &nbsp; &nbsp;
+                                                    <input id="is_featured_proj_false" type="radio" name="is_featured" value="0" class="css-radio" {% if project_details.is_featured == 0 or project_details.is_featured is None %}checked{% endif %}>
+                                                    <label for="is_featured_proj_false" class="radio-label">No</label>
+                                                </div>
+                                            </div>
+                                        </div><!-- End .col-md-6 -->
+
+<!--                                        <div class="col-md-6 col-sm-6" style="{% if request.session.is_broker %}{% else %}display:none;{% endif %}">-->
+<!--                                            <div class="form-group">-->
+<!--                                                <label for="proj_listing_status">Status <span class="text-danger">*</span></label>-->
+<!--                                                <select name="proj_listing_status" aria-label="Status" id="proj_listing_status" class="select form-control">-->
+<!--                                                    <option value="">Select</option>-->
+<!--                                                    {% if status_list %}-->
+<!--                                                    {% for item in status_list %}-->
+<!--                                                    <option value="{{ item.id }}" {% if item.id == project_details.status %}selected{% endif %}>{{ item.status_name }}</option>-->
+<!--                                                    {% endfor %}-->
+<!--                                                    {% endif %}-->
+<!--                                                </select>-->
+<!--                                            </div>-->
+<!--                                        </div>&lt;!&ndash; End .col-md-6 &ndash;&gt;-->
+
+                                        <div class="col-md-12 col-sm-12">
+                                            <div class="form-group">
+                                                <label for="project_desc" class="pb10">About Project</label>
+                                                <textarea name="project_desc" id="project_desc" aria-label="About Project" class="ckeditor form-control">{{ project_details.project_desc|default:'' }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12 col-sm-12">
+                                            <div class="form-group arabic-text">
+                                                <label for="project_desc_ar" class="pb10">About Project In Arabic</label>
+                                                <textarea name="project_desc_ar" id="project_desc_ar" aria-label="About Project" class="ckeditor form-control">{{ project_details.project_desc_ar|default:'' }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading" role="tab" id="headingSecond">
+                                <h4 class="panel-title">
+                                    <a class="collapsed project_exterior" tabindex="10" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSecond" aria-expanded="false" aria-controls="collapseSecond">
+                                        Project Facilities
+                                        <span class="icon"></span>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseSecond" class="panel-collapse collapse" role="tabpanel" aria-labelledby="collapseSecond">
+                                <div class="panel-body">
+                                    <div class="facility-container">
+                                        {% for facility in facilities %}
+                                        <div class="facility-item">
+                                            <input class="form-check-input css-checkbox" type="checkbox" name="selected_facility" id="facility_{{ facility.id }}"
+                                                    value="{{ facility.id }}" {% if facility.id in project_details.project_selected_facilities %}checked{% endif %}>
+                                            <label for="facility_{{ facility.id }}" class="checkbox-label">
+                                                {% if facility.doc_file_name %}
+                                                    <img src="{% if facility.doc_file_name %}{{ azure_blob_url }}{{ facility.bucket_name }}/{{ facility.doc_file_name }}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="{{ facility.name }}" class="faci-icon">
+                                                {% endif %}
+
+                                                {{ facility.name }}
+                                            </label>
+
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="add-facilities-btn">
+                                        <button type="button" name="add-facility-btn" id="add-facility-btn" value="add-facility-btn" class="btn btn-secondary"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+
+                                    <div class="facility-wrap">
+
+                                        <div id="add-facility-form" style="display: none; margin-top: 20px;">
+                                            <div class="row">
+                                                <div class="col-md-4 col-sm-4">
+                                                    <div class="form-group">
+                                                        <label for="facility_name">Facility Name <span class="text-danger">*</span></label>
+                                                        <input type="text" name="facility_name" id="facility_name" aria-label="Enter Facility Name" class="form-control" placeholder="Enter Facility Name"/>
+                                                        <p id="facility_name-error" class="error"></p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8 col-sm-8 upload-fav pt10 pb0">
+                                                    <div class="item">
+                                                        <div class="dropzone" id="uploadFacilityImgFrm">
+                                                            <input type="hidden" id="facility_img_id" name="facility_img_id" value=""/>
+                                                            <input type="hidden" name="facility_img_name" id="facility_img_name" value=""/>
+                                                            <div class="dz-default dz-message" data-dz-message="">
+                                                                <div class="block">
+                                                                    <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photo</button>
+                                                                </div>
+                                                                <div class="block">
+                                                                    or
+                                                                </div>
+                                                                <div class="block">
+                                                                    <h6>
+                                                                        Drag & Drop Docs
+                                                                        <span>Supported Files:  png, jpg, jpeg</span>
+                                                                    </h6>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="item facilityImageDiv" id="facilityImageDiv" style="display: none">
+                                                        <div class="artical-icon agent-section">
+                                                            <figure>
+                                                                <img src="" class="facilityImageId" id="facilityImageId" alt="facility" width="211" height="113">
+                                                            </figure>
+<!--                                                            <a href="javascript:void(0)" class="confirm_image_delete" data-image-id="" data-image-name="" data-image-section="" data-count=""><i class="fas fa-trash-alt" aria-hidden="true" role="presentation"></i></a>-->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p id="facility_image_error" class="custom_image_error" style="display:none;">Facility icon is required.</p>
+                                            </div>
+                                            <button type="button" name="facility_info_submit_btn" id="facility_info_submit_btn" value="save_facility" class="btn btn-secondary">Save Facility</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="clearfix pt30">
+                    <button class="btn btn-primary-bdr" tabindex="12" type="button" name="project_info_submit_next_btn" id="project_info_submit_next_btn" value="Next">Next</button>
+                    <!-- <button type="button" name="project_info_submit_exit_btn" id="project_info_submit_exit_btn" value="save_exit" class="btn btn-primary">Save & Exit</button> -->
+                    <a href="/admin/project-list/" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="overlay" style="display:none;">
+    <div class="loader">Loading...</div>
+</div>
+
+{% endblock %}
+{% block js_content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.5"></script>
+<script type="text/javascript" src="{% static 'admin/js/chosen.js' %}?v=2.4"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=2.0"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=1.0"></script>
+<script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+<script type="text/javascript" src="{% static 'admin/js/range.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
+
+<script>
+    var is_first_login = {{request.session.is_first_admin_login}};
+    $('.select').chosen();
+    $('#datetimepicker3,#datetimepicker4').datetimepicker({
+        format: 'MM-DD-YYYY hh:mm A',
+    });
+    $('#datetimepicker3,#datetimepicker4').on('dp.change',function(e){
+        var virtual_date_element = $(this).find('input:first').attr('id');
+        var date_element = $(this).find('input:last').attr('id');
+        var dates = $("#"+virtual_date_element).val();
+        var auction_type = $('option:selected','#auction_type').val();
+        if(dates != ""){
+            var actualStartDate = dates.split(" ");
+            //new lines
+            var mdy_format = actualStartDate[0].split("-");
+
+            mdy_date = mdy_format[2]+"-"+mdy_format[0]+"-"+mdy_format[1];
+
+            actualStartDate = actualStartDate[0]+' '+convert_to_24h(actualStartDate[1]+' '+actualStartDate[2]);
+
+            var utc_date = convert_to_utc_date(actualStartDate, 'mm-dd-yyyy', 'datetime');
+            $("#"+date_element+"_local").val(actualStartDate);
+            $("#"+date_element).val(utc_date);
+        }
+    });
+
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.panel').click(function() {
+            $('.panel.panel-active').removeClass("panel-active");
+            $(this).addClass("panel-active");
+        });
+    });
+</script>
+
+{% endblock %}

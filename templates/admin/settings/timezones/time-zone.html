@@ -1,0 +1,108 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+
+{% block title %} Time Zone List {% endblock title %}
+
+{% block style %}
+  {{ block.super }}
+  <link href="{% static 'admin/vendors/jQuery-Multiple-Select/dist/css/selectize.bootstrap3.css' %}" type="text/css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+
+<link href="{% static 'admin/vendors/jQuery-Multiple-Select/dist/css/selectize.bootstrap3.css' %}" type="text/css" rel="stylesheet" />
+
+<div class="dashboard-body">
+  
+    <div class="listing-top">
+      <div class="block">
+        <h6>
+          Time Zone List 
+          <span>
+            Total Count :-  <b id="totalCount">Loading...</b>
+          </span>
+        </h6>
+      </div>
+
+      <div class="block">
+        <form action="" class="search-field last top_search">
+          <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
+          <input type="text" id="search" class="form-control input-sm" aria-label="Search" placeholder="Search for..." aria-label="Search for ...">
+          <button role="button" class="btn btn-primary btn-xs searchBtn" type="submit" aria-label="Go">Go!</button>
+        </form>
+      </div>
+      <div class="block filters" style="min-width: 130px;">
+        <ul>
+          <li>
+            <select class="form-control" aria-label="Records" name="per_page_record" id="per_page_record">
+              <option value="10">10 Records</option>
+              <option value="20" selected>20 Records</option>
+              <option value="30">30 Records</option>
+              <option value="40">40 Records</option>
+              <option value="50">50 Records</option>
+            </select>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %} alert-danger {% elif message.tags == 'success' %} alert-success {% else %} alert-info {% endif %} alert-dismissible " role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+            </button>{{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+      <input type="hidden" name="page-timezone-list" id="page-timezone-list" value="1">						
+      
+    <span id="span-ajax-timezone-list">
+      <div class="table-responsive">
+      <table class="table jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Time Zone List Table" role="table">
+        <thead>
+            <tr class="headings" role="row">
+              <th class="column-title" role="columnheader" scope="col">ID </th>
+              <th class="column-title" role="columnheader" scope="col">Timezone </th>
+              <th class="column-title" role="columnheader" scope="col">Offset </th>
+              <th class="column-title" role="columnheader" scope="col"> Offset DST</th>
+              <th class="column-title" role="columnheader" scope="col">Status </th>
+              <th class="column-title no-link last" role="columnheader" scope="col" style="width:20%"><span class="nobr">Action</span>
+              </th>
+            </tr>
+          </thead>
+            
+          <tbody>							  			  
+          </tbody>
+        </table>
+      </div>
+    </span> 
+    
+</div>
+
+{% endblock %}
+
+{% block js_content %}
+  <script>
+  $(function() {
+      setTimeout(function() {
+          $(".alert").hide();
+      }, 3000);
+
+      $('.select').chosen();
+
+  });
+  </script>
+
+
+  <script type="text/javascript" src="{% static 'admin/build/js/boolean-active-inactive.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/build/js/timezone-list.js' %}?v=1.0"></script>
+  <script type="text/javascript" src="{% static 'admin/build/js/jquery-ui.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/vendors/jQuery-Multiple-Select/dist/js/standalone/selectize.js' %}"></script>
+
+
+
+
+{% endblock %}

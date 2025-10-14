@@ -1,0 +1,77 @@
+{% load static %}
+
+<div class="table-responsive">
+<table class="table table-responsive jambo_table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Advertisement List Table" role="table">
+    <thead>
+        <tr role="row" class="headings" style="white-space: nowrap;">
+            <th class="column-title" role="columnheader" scope="col">ID </th>
+            <th class="column-title" role="columnheader" scope="col">Company Name </th>
+            <th class="column-title" role="columnheader" scope="col" style="width:10%">Domain Name</th>
+            <th class="column-title" role="columnheader" scope="col">URL </th>
+            <th class="column-title" role="columnheader" scope="col">Added on</th>
+            <th class="column-title" role="columnheader" scope="col">Views</th>
+            <th class="column-title" role="columnheader" scope="col">Status</th>
+            <th class="column-title no-link last" role="columnheader" scope="col" style="width:10%"><span class="nobr">Action</span></th>
+        </tr>
+    </thead>
+
+    <tbody>
+    {% if data.total > 0 %}
+        {% for ad in data.data %}
+            <tr role="row" class="even pointer" style="white-space: nowrap;">
+                <th class="" role="columnheader" scope="row">{{ forloop.counter|add:start_index }}</th>
+                <td role="rowheader">{{ ad.company_name|default:'-' }}</td>
+                <td role="rowheader">{{ ad.domain|default:'-' }}</td>
+                <td role="rowheader">
+                    <a href="{% if 'http' not in ad.url %}http://{{ad.url}}{% else %}{{ad.url}}{% endif %}" target="_blank" class="text-primary">{{ad.url|default:'-'}}</a>
+                </td>
+                <td role="rowheader" class="convert_to_local_date" data-value="{{ ad.added_on|default:'' }}">{{ ad.added_on|parse_iso|date:'m-d-Y g:i A'|default:'-' }}</td>
+                <td role="rowheader"><button class="btn btn-xs btn-round btn-primary"><i class="fa fa-eye" aria-hidden="true" role="presentation"></i> {{ ad.total_add_view|default:'0' }}</button></td>
+                <td role="rowheader"><span class="btn btn-xs btn-round {% if ad.status|lower == 'active' %} btn-success {% elif ad.status|lower == 'delete' %} btn-danger {% else %} btn-warning {% endif %}" id="statusText{{ad.id}}">{{ad.status}} </span> </td>
+                <td role="rowheader">
+                    <button  href="javascript:void(0)" type="button" data-id="{{ad.id}}" class="btn btn-xs btn-round btn-primary edit-advertisement"><i class="fa fa-edit" aria-hidden="true" role="presentation"></i> Manage</button>
+                </td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr role="row">  
+            <td role="rowheader" style="white-space: nowrap;">No Advertisement available </td>
+        </tr>
+    {% endif %}
+    
+    </tbody>
+</table>
+</div>
+
+{% if data.total > 0 %}
+<div class="pagination ">
+  <ul >
+    {{pagination|safe}}
+  </ul>
+</div>
+{% endif %}
+
+{% block js_content %}
+  <script>
+  $(function() {
+    $('#totalCount').html('{{data.total}}')
+
+    $('.convert_to_local_date').each(function(){
+        try{
+            var added_on = $(this).attr('data-value');
+            if(added_on.trim() != "" && added_on.trim() != "None"){
+                var local_date = getLocalDate(added_on.trim(), 'mm/dd/yyyy','ampm');
+                var actual_date = local_date.split(" ");
+                actual_date = actual_date[0]+' '+actual_date[1]+' '+actual_date[2];
+                $(this).html(actual_date);
+            }else{
+                $(this).html('-');
+            }
+        }catch(ex){
+            console.log(ex);
+        }
+    });
+
+  });
+  </script>
+{% endblock %}

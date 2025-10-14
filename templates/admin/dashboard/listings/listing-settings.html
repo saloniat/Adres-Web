@@ -1,0 +1,275 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+    <link href="{% static 'admin/css/dropzone.css' %}?v=2.2" type="text/css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+        <div class="row">
+          <div class="col-md-12 col-sm-12">
+            <div class="back-btn">
+              <a href="/admin/listing/"><i class="fas fa-chevron-left" aria-hidden="true" role="presentation"></i> Back</a>
+            </div>
+
+            <h6>
+              Global /Default Setting for property
+            </h6>
+            <form name="global_listing_setting_frm" id="global_listing_setting_frm" method="post" autocomplete="off">
+              {% csrf_token %}
+            <div class="box clearfix">
+              <h6 class="edit-heading">
+                Edit Setting
+              </h6>
+
+
+              <!-- <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label class="lh46">
+                      Auto Approval
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">Lorem Ipsum is simply dummy text of the printing and typesetting industry. </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 lh46">
+                  <input id="Residential" type="radio" name="auto_approval" aria-label="Yes" value="1" class="css-radio auto_approval" {% if listing_setting.auto_approval %}checked{% endif %}>
+                  <label for="Residential" class="radio-label auto_approval_label">Yes</label>
+                  &nbsp; &nbsp; &nbsp;
+                  <input id="Land" type="radio" name="auto_approval" value="0" aria-label="No" class="css-radio" {% if 'auto_approval' in listing_setting and listing_setting.auto_approval == False %}checked{% endif %} {% if 'auto_approval' not in listing_setting %}checked{% endif %}>
+                  <label for="Land" class="radio-label auto_approval_label">No</label>
+                </div>
+              </div> -->
+              <!-- <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label class="lh46">
+                      Deposit Required
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">Is deposit required?</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 lh46">
+                  <input id="is_deposit_required_yes" type="radio" name="is_deposit_required" aria-label="Yes" value="1" class="css-radio" {% if listing_setting.is_deposit_required %}checked{% endif %}>
+                  <label for="is_deposit_required_yes" class="radio-label is_deposit_required_label">Yes</label>
+                  &nbsp; &nbsp; &nbsp;
+                  <input id="is_deposit_required_no" type="radio" name="is_deposit_required" aria-label="No" value="0" class="css-radio" {% if 'is_deposit_required' in listing_setting and listing_setting.is_deposit_required == False %}checked{% endif %} {% if 'is_deposit_required' not in listing_setting %}checked{% endif %}>
+                  <label for="is_deposit_required_no" class="radio-label is_deposit_required_label">No</label>
+                </div>
+              </div> -->
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group" >
+                    <label class="lh46">
+                      Show Reserve Met
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">Set this to ‘Yes’ to Show to the Bidder if the Reserve Price for Listing is Met or Not </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 lh46">
+                  <input id="reserve_not_met_true" type="radio" name="reserve_not_met" aria-label="Yes" class="css-radio reserve_not_met" value="1" {% if listing_setting.show_reverse_not_met %}checked{% endif %}>
+                  <label for="reserve_not_met_true" class="radio-label reserve_not_met_label">Yes</label>
+                  &nbsp; &nbsp; &nbsp;
+                  <input id="reserve_not_met_false" type="radio" name="reserve_not_met" aria-label="No" class="css-radio reserve_not_met" value="0" {% if 'show_reverse_not_met' in listing_setting and listing_setting.show_reverse_not_met == False %}checked{% endif %} {% if 'show_reverse_not_met' not in listing_setting %}checked{% endif %} >
+                  <label for="reserve_not_met_false" class="radio-label reserve_not_met_label">No</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label class="lh46">
+                      Is Log Time Extension
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">Allow Bid Time Extension</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 lh46">
+                  <input id="is_log_time_extension_true" type="radio" name="is_log_time_extension" aria-label="Yes" value="1" class="css-radio is_log_time_extension" value="1" {% if listing_setting.is_log_time_extension %}checked{% endif %}>
+                  <label for="is_log_time_extension_true" class="radio-label is_log_time_extension_label">Yes</label>
+                  &nbsp; &nbsp; &nbsp;
+                  <input id="is_log_time_extension_false" type="radio" name="is_log_time_extension" aria-label="No" value="0" class="css-radio is_log_time_extension" value="0" {% if 'is_log_time_extension' in listing_setting and listing_setting.is_log_time_extension == False %}checked{% endif %} {% if 'is_log_time_extension' not in listing_setting %}checked{% endif %}>
+                  <label for="is_log_time_extension_false" class="radio-label is_log_time_extension">No</label>
+                </div>
+              </div>
+              <!-- <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="timer_flash" class="lh46">
+                      Timer Flash<span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">Lorem Ipsum is simply dummy text of the printing and typesetting industry. </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 timer-error">
+                  <div class="form-group">
+                    <input type="number" min="1" class="form-control" aria-label="Minute" name="timer_flash" onkeypress="return isNumber(event)" id="timer_flash" placeholder="Timer flash" value="{{ listing_setting.time_flash|default:'' }}" maxlength="10" onkeydown="if(this.value.length==10 && event.keyCode!=8) return false;">
+                    <div class="tagline">Minutes</div>
+                  </div>
+                </div>
+              </div> -->
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="log_time_extension" class="lh46">
+                      Log Time Extension<span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">This is how much extra time that will be added to the online bidding end time.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 timer-error">
+                  <div class="form-group">
+                    <input type="number" min="1" class="form-control" aria-label="Minute" name="log_time_extension" onkeypress="return isNumber(event)" id="log_time_extension" placeholder="Log Time Extension" value="{{ listing_setting.log_time_extension|default:'' }}" maxlength="10" onkeydown="if(this.value.length==10 && event.keyCode!=8) return false;">
+                    <div class="tagline">Minutes</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="remain_time_to_add_extension" class="lh46">
+                      When to start adding<span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">If a bid is placed during this time the bid time is extended by ‘Bid Extension Duration’</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 timer-error">
+                  <div class="form-group ">
+                    <input type="number" min="1" class="form-control" name="remain_time_to_add_extension" id="remain_time_to_add_extension" placeholder="When To Start Adding" value="{{ listing_setting.remain_time_to_add_extension|default:'' }}" maxlength="10" onkeydown="if(this.value.length==10 && event.keyCode!=8) return false;">
+                    <div class="tagline">Minutes</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="service_fee" class="lh46">
+                      Service Fee(%)<span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">A Service Fee (%) is a percentage-based charge applied to the transaction amount for providing a service, platform, or convenience.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 timer-error">
+                  <div class="form-group ">
+                    <input type="number" class="form-control" name="service_fee" id="service_fee" placeholder="Service Fee" value="{{ listing_setting.service_fee|default:'' }}" onkeypress="validatePercentage(event, this, 100);">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="auction_fee" class="lh46">
+                      Auction Fee<span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                        <span class="tooltipp__content right banner-img">An auction fee is a charge added on top of (or deducted from) the final sale price during an auction.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 timer-error">
+                  <div class="form-group ">
+                    <span class="dollar">AED</span>
+                    <input type="number" min="1" class="form-control" name="auction_fee" id="auction_fee" placeholder="Auction Fee" value="{{ listing_setting.auction_fee|floatformat:0|default:'' }}" maxlength="15" onkeypress="validateInput(event, this, 15);">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label class="">
+                      Allow Autobid <span class="required">*</span>
+                      <div class="tooltipp"><i class="fas fa-question-circle"></i>
+                        <span class="tooltipp__content right banner-img">Automatically places bids on your behalf up to a set limit.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4 ">
+                  <div class="form-group">
+                    <input id="autobid_yes" type="radio" name="autobid" value="1" aria-label="Yes" class="css-radio" {% if listing_setting.autobid and listing_setting.autobid == 1 %}checked{% endif %}>
+                    <label for="autobid_yes" class="radio-label autobid_label">Yes</label>
+                    &nbsp; &nbsp; &nbsp;
+                    <input id="autobid_no" type="radio" name="autobid" value="2" aria-label="No" class="css-radio" {% if 'autobid' in listing_setting and listing_setting.autobid == False %}checked{% endif %} {% if 'autobid' not in listing_setting %}checked{% endif %}>
+                    <label for="autobid_no" class="radio-label autobid_label">No</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row" id="global_autobid_section" style="{% if listing_setting.autobid and listing_setting.autobid == 1 %} display:block; {% else %} display:none; {% endif %}">
+                <div class="col-md-3">
+                  <div class="form-group mb0">
+                    <label class="">
+                      Autobid Setup
+                      <div class="tooltipp"><i class="fas fa-question-circle"></i>
+                        <span class="tooltipp__content right banner-img">Configure rules and limits for automatic bidding.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="col-md-9">
+                  <div class="form-group mb0">
+                    <div class="pb10">
+                      <input id="autobid_setup_second" type="radio" aria-label="Allowed after start of bidding (until bidding ends)" name="autobid_setup" value="2" class="css-radio autobid_setup" value="2" checked="checked">
+                      <label for="autobid_setup_second" class="radio-label autobid_setup">Allowed after start of bidding (until bidding ends)</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="clearfix pt30">
+                <button class="btn btn-primary">Save</button> <!--<button class="btn btn-primary-bdr">Cancel</button>-->
+              </div>
+            </div><!-- End .box -->
+            </form>
+
+
+
+          </div><!-- End .col-md-10 -->
+        </div><!-- End .row -->
+      </div><!-- End .dashboard-body -->
+{% endblock %}
+{% block js_content %}
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
+    <!--<script type="text/javascript" src="{% static 'admin/js/tinymce/tinymce.min.js' %}"></script>-->
+    <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.4"></script>
+    <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/article.js' %}?v=1.3"></script>
+    <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=3.8"></script>
+    <!-- <script type="text/javascript" src="{% static 'admin/js/properties.js' %}?v=4.1"></script> -->
+    <script type="text/javascript" src="{% static 'admin/js/listing_settings.js' %}?v=4.1"></script>
+    <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+      <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+
+<script>
+      $('[data-toggle="tooltip"]').tooltip()
+    </script>
+{% endblock %}

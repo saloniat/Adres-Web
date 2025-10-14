@@ -1,0 +1,278 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+    
+    <link href="{% static 'admin/css/dropzone.css' %}?v=2.1" type="text/css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+ <div class="dashboard-body">
+        <div class="row">
+         <form name="project_photo_video_frm" id="project_photo_video_frm" method="post">
+             {% csrf_token %}
+            <input type="hidden" name="project_id" id="project_id" value="{{ request.GET.project_id }}" />
+            <input type="hidden" name="next_url" id="next_url" value="" />
+           <input type="hidden" name="step" id="step" value="3" />
+          <div class="col-md-12 col-sm-12">
+            <div class="table-heading">
+              <div class="item">
+                <h6>
+                  <strong>Add Project </strong>
+                </h6>
+              </div>
+            </div>
+
+            <div class="website-plan">
+              <div class="steps">
+                <ul class="addproject-progressbar">
+                  <li class="active">
+                    <a role="link" tabindex="3" aria-label="Project Information" href="{% if request.GET.project_id %}/admin/add-project-info/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon property-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Project Information</span>
+                  </li>
+                  <li class="active">
+                    <a role="link" tabindex="4" aria-label="Map & Street View" href="{% if request.GET.project_id %}/admin/project-map-view/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon map-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Map & Street View</span>
+                  </li>
+                  <li class="active">
+                    <a role="link" tabindex="5" aria-label="Project Photos & Videos" href="{% if request.GET.project_id %}/admin/project-photo-video/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon photos-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Project Photos & Videos</span>
+                  </li>
+                  <li>
+                    <a role="link" tabindex="6" aria-label="Floor Plans & Documents" href="{% if request.GET.project_id %}/admin/project-document-floor-plan/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon document-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Floor Plans & Documents</span>
+                  </li>
+                </ul>
+              </div>
+            </div><!-- End .website-plan -->
+
+            <div class="customscroll bidder-accordian">
+              <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" class="collapsed">
+                              Project Photos & Videos
+                              <span class="icon"></span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                      <div class="panel-body">
+                        <h6>
+                          <i class="far fa-image red-text" aria-hidden="true" role="presentation"></i> Photos
+                        </h6>
+                        <div class="upload-fav">
+                          <div class="item">
+                            <div class="dropzone" id="projectImageFrm">
+                                <input type="hidden" id="project_image_id" name="project_image_id" value="{{ project_details.property_image_ids|default:'' }}"/>
+                                  <input type="hidden" name="project_image_name" id="project_image_name" value="{{ project_details.property_image_name|default:'' }}"/>
+                                  <div class="dz-default dz-message" data-dz-message="">
+                                    <div class="block">
+                                      <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photos</button>
+                                    </div>
+                                    <div class="block">
+                                      or
+                                    </div>
+                                    <div class="block">
+                                      <h6>
+                                        Drag & Drop Docs
+                                        <span>Supported Files: jpg, jpeg, png</span>
+                                      </h6>
+                                    </div>
+                                  </div>
+                            </div>
+                          </div>
+                          <div class="item">
+                            <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                              <span class="tooltipp__content">Allowed file types are jpg, jpeg, png. Preferred image size is 617*414 px.</span>
+                            </div>
+                          </div>
+                        </div><!-- End .uplaod-fav -->
+                        <p id="custom_property_image_error"  class="custom_image_error" style="display:none;">Image is required.</p>
+                        <h6>
+                           Primary photos
+                          <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                            <span class="tooltipp__content right">Drag and drop photos to change their order.</span>
+                          </div>
+                        </h6>
+
+                        <div class="image-show-list" id="PropertyImgDiv" style="{% if project_details.photo|length > 0 %}{% else %}display:none;{% endif %}">
+                          <ul id="projectImgList">
+                            {% for item in project_details.photo %}
+                            <li rel_id="{{ item.upload_id }}" rel_position="{{ forloop.counter }}">
+                              <a href="javascript:void(0)" data-article-id="{{ project_details.id }}" data-image-id="{{ item.upload_id }}" data-image-name="{{ item.doc_file_name }}" data-image-section="{{ item.bucket_name }}"  class="close-btn confirm_image_delete"><i class="fas fa-times" aria-hidden="true" role="presentation"></i></a>
+                              <img src="{% if item.doc_file_name %}{{ azure_blob_url }}{{ item.bucket_name }}/{{ item.doc_file_name }}{% else %}{% static 'admin/images/upload-banner-1.png' %}{% endif %}" alt="real estate sales">
+                              <figcaption>
+                                <h6>
+                                  {{ item.doc_file_name }}
+                                </h6>
+                                <p class="size_date_sec" data-file-size="{{ item.file_size }}" data-added-date="{{ item.added_on }}">
+                                  File Size: {{ item.file_size }} <br>
+                                  Uploaded: {{ item.added_on|parse_iso|date:'M j, Y h:i:sa' }}
+                                </p>
+                                <textarea style="display: none" id="photo_description_{{ forloop.counter }}" name="photo_description_{{ forloop.counter }}" rows="4" cols="20">{% if item.photo_description != None %}{{item.photo_description}}{% endif %}</textarea>
+                                <div class="move" style="display: none">
+                                  <i class="fas fa-expand-arrows-alt" aria-hidden="true" role="presentation"></i> Move
+                                </div>
+                              </figcaption>
+                            </li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+
+                        <h6>
+                          <i class="fas fa-video red-text" aria-hidden="true" role="presentation"></i> Videos
+                          <div class="tooltipp"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i>
+                            <span class="tooltipp__content right">Add Youtube/Vimeo video url</span>
+                          </div>
+                        </h6>
+
+                        <div class="add-video">
+                          <div class="block">
+
+                            <input type="hidden" name="project_video_id" id="project_video_id" class="form-control" value="{{ project_details.property_video_ids|default:'' }}">
+                            <input type="hidden" name="project_video_name" id="project_video_name" class="form-control" value="{{ project_details.property_video_name|default:'' }}">
+                            <input type="text" name="project_video_url" id="project_video_url" class="form-control" aria-label="Enter url" placeholder="Enter url" value="">
+                          </div>
+                          <div class="block">
+                            <button type="button" id="addVideoBtn" class="btn btn-primary">Add Video</button>
+                          </div>
+                        </div>
+                        <p class="mb10">
+                           Primary Videos
+                        </p>
+
+                        <div class="image-show-list" id="ProjectVideoDiv" style="{% if project_details.video|length > 0 %}{% else %}display:none;{% endif %}">
+                          <ul id="projectVideoList">
+                              {% for item in project_details.video %}
+                            <li rel_id="{{ item.upload_id }}" rel_position="{{ forloop.counter }}">
+                              <a href="javascript:void(0)" data-article-id="{{ project_details.id }}" data-image-id="{{ item.upload_id }}" data-image-name="{{ item.doc_file_name }}" data-image-section="project_video"  class="close-btn confirm_image_delete"><i class="fas fa-times"></i></a>
+                              <iframe width="190" height="126" src="{{ item.doc_file_name }}" frameborder="0" allowfullscreen></iframe></iframe>
+                              <div class="move">
+                                <i class="fas fa-expand-arrows-alt"></i> Move
+                              </div>
+                            </li>
+                              {% endfor %}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                </div><!-- End .panel -->
+
+              </div><!-- panel-group -->
+            </div><!-- End .customscroll -->
+
+            <div class="clearfix pt30">
+              <!-- <button type="button" name="project_image_submit_next_btn" id="project_image_submit_next_btn" value="Next" class="btn btn-primary">Next</button><button type="button" name="project_image_submit_exit_btn" id="project_image_submit_exit_btn" value="save_exit" class="btn btn-primary">Save & Exit</button><a href="/admin/project-list/" class="btn btn-primary-bdr">Cancel</a> -->
+               <button type="button" name="project_image_submit_next_btn" id="project_image_submit_next_btn" value="Next" class="btn btn-primary">Next</button><a href="/admin/project-list/" class="btn btn-primary-bdr">Cancel</a>
+            </div>
+
+          </div><!-- End .col-md-10 -->
+            </form>
+        </div><!-- End .row -->
+      </div><!-- End .dashboard-body -->
+<div class="overlay" style="display:none;">
+              <div class="loader">Loading...</div>
+            </div>
+{% endblock %}
+{% block js_content %}
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=1.1"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=3.8"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.14.0/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+<script>
+    $(function() {
+      $('#datetimepicker1, #datetimepicker2').datetimepicker({
+
+      });
+      $('#projectImgList').sortable({
+        stop: function(e, ui) {
+            $.map($(this).find('li'), function(el) {
+                console.log($(el).attr('class'));
+                var custom_index = parseInt($(el).index())+1;
+                $(el).attr('rel_position', custom_index);
+
+            });
+            reindex_prop_img_list();
+        }
+
+    });
+      $('#projectVideoList').sortable({
+        stop: function(e, ui) {
+            $.map($(this).find('li'), function(el) {
+                console.log($(el).attr('class'));
+                var custom_index = parseInt($(el).index())+1;
+                $(el).attr('rel_position', custom_index);
+
+            });
+            reindex_prop_video_list();
+        }
+
+      });
+    });
+    function reindex_prop_img_list(){
+      var img_id_list = [];
+      var img_name_list = [];
+      var str_img_id = '';
+      var str_img_name = '';
+      $('#projectImgList li').each(function(index){
+        var rel_id = $(this).find('a').attr('data-image-id');
+        var rel_name = $(this).find('a').attr('data-image-name');
+        img_id_list.push(rel_id);
+        img_name_list.push(rel_name);
+      });
+      str_img_id = img_id_list.toString();
+      str_img_name = img_name_list.toString();
+      $('#project_image_id').val(str_img_id);
+      $('#project_image_name').val(str_img_name);
+    }
+    function reindex_prop_video_list(){
+      var img_id_list = [];
+      var img_name_list = [];
+      var str_img_id = '';
+      var str_img_name = '';
+      $('#projectVideoList li').each(function(index){
+        var rel_id = $(this).find('a').attr('data-image-id');
+        var rel_name = $(this).find('a').attr('data-image-name');
+        img_id_list.push(rel_id);
+        img_name_list.push(rel_name);
+      });
+      str_img_id = img_id_list.toString();
+      str_img_name = img_name_list.toString();
+      $('#project_video_id').val(str_img_id);
+      $('#project_video_name').val(str_img_name);
+    }
+    $('.select').chosen();
+</script>
+{% endblock %}

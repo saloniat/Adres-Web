@@ -1,0 +1,68 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% block title %}{{title}}{% endblock %}
+{% load dashboard_extra %}
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+{% endblock %}
+{% block content %}
+
+<div class="dashboard-body">
+  <div class="row">
+    <div class="col-md-8 col-sm-12 col-md-offset-2">
+      <h4>
+        <span id="startTourBtn">User Profile</span>
+      </h4>
+      <div class="login-wrap">
+        <form name="user_profile" id="user_profile">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label" for="">Name</label>
+                <input type="text" class="form-control" value="{{user_details.first_name}}" aria-label="" name="name" id="name" placeholder="Please enter name">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label" for="">Phone</label>
+                <div class="ph-code">
+                  <select name="phone_country_code" class="select">
+                    <option value="971" {% if user_details.phone_country_code == 971 %} selected {% endif %}>+971</option>
+                  </select>
+                  <input type="text" class="form-control" value="{{user_details.phone_no}}" aria-label="" name="phone_no" id="phone_no" placeholder="Please enter phone">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="form-label" for="">Email</label>
+                <input type="text" class="form-control" value="{{user_details.email}}" aria-label="" name="email" id="email" placeholder="Please enter email">
+              </div>
+            </div>
+          </div>
+          <div class="clearfix">
+            <button type="submit" class="btn btn-primary">Update</button>
+          </div>
+        </form>
+      </div>
+      
+    </div>
+  </div><!-- End .row -->
+</div><!-- End .dashboard-body -->
+
+<div class="overlay" style="display:none;">
+  <div class="loader">Loading...</div>
+</div>
+{% endblock %}
+
+{% block js_content %}
+<script type="text/javascript" src="{% static 'admin/js/tableHeadFixer.js' %}?v=1.1"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom.js' %}?v=1.1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.3"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/user_profile.js' %}?v=3.2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
+{% endblock %}

@@ -1,0 +1,515 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+    
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+        <div class="row">
+          <form name="project_map_view_frm" id="project_map_view_frm" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="project_id" id="project_id" value="{{ request.GET.project_id }}" />
+            <input type="hidden" name="next_url" id="next_url" value="" />
+            <input type="hidden" name="step" id="step" value="2" />
+            <input type="hidden" name="actual_address" id="actual_address" value="" />
+            <input type="hidden" name="default_latitude" id="default_latitude" value="{{ project_details.latitude|default:0 }}" />
+            <input type="hidden" name="default_longitude" id="default_longitude" value="{{ project_details.longitude|default:0 }}" />
+            <input type="hidden" name="shopping_json" id="shopping_json" value="{{ project_details.shoppingResults|default:'' }}" />
+            <input type="hidden" name="lifestyle_json" id="lifestyle_json" value="{{ project_details.lifestyle_json|default:'' }}" />
+            <input type="hidden" name="school_json" id="school_json" value="{{ project_details.school_json|default:'' }}" />
+            <input type="hidden" name="hospital_json" id="hospital_json" value="{{ project_details.hospital_json|default:'' }}" />
+          <div class="col-md-12 col-sm-12">
+            <div class="table-heading">
+              <div class="item">
+                <h6>
+                  <strong>Add Project </strong>
+                </h6>
+              </div>
+            </div>
+
+            <div class="website-plan">
+              <div class="steps">
+                <ul class="addproject-progressbar">
+                  <li class="active">
+                    <a role="link" tabindex="3" aria-label="Project Information" href="{% if request.GET.project_id %}/admin/add-project-info/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon property-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Project Information</span>
+                  </li>
+                  <li class="active">
+                    <a role="link" tabindex="4" aria-label="Map & Street View" href="{% if request.GET.project_id %}/admin/project-map-view/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon map-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Project Map & Street View</span>
+                  </li>
+                  <li>
+                    <a role="link" tabindex="5" aria-label="Project Photos & Videos" href="{% if request.GET.project_id %}/admin/project-photo-video/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon photos-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Project Photos & Videos</span>
+                  </li>
+                  <li>
+                    <a role="link" tabindex="6" aria-label="Floor Plans & Documents" href="{% if request.GET.project_id %}/admin/project-document-floor-plan/?project_id={{ request.GET.project_id }}{% else %}#{% endif %}">
+                      <span class="circle">
+                        <div class="icon document-icon"></div>
+                      </span>
+                    </a>
+                    <span class="name">Floor Plans & Documents</span>
+                  </li>
+                </ul>
+              </div>
+            </div><!-- End .website-plan -->
+
+            <div class="customscroll bidder-accordian">
+              <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" class="collapsed">
+                               Map & Street View
+                              <span class="icon"></span>
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                      <div class="panel-body">
+                        <div class="row">
+                          <div class="col-md-12">
+                            <div class="form-group">
+                              <label for="project_map_address">Address</label>
+                              <input type="text" class="form-control" aria-label="Address" name="project_map_address" id="project_map_address" placeholder="Enter address" value="{{ project_details.address_one }}, {{ project_details.city }}, {{ project_details.country_name }}" readonly>
+
+                            </div>
+                          </div>
+
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="enable_arial_view" class="pb20">Enable Arial View <a href="javascript:void(0)" data-toggle="tooltip" data-placement="left" title="Enable Arial View" class="tooltip-icon"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i></a>
+                              <label class="switch small">
+                                <input type="checkbox" name="enable_arial_view" id="enable_arial_view" value="1" {% if project_details.is_arial_view == True %}checked{% endif %}>
+                                <span class="slide round"></span>
+                              </label></label>
+                              <div class="map-area mb10" id="ariel-view-map" style="height:350px;">
+                                <img src="{% static 'admin/images/Image_35.png' %}" alt="real estate sales">
+                              </div>
+                              <p><strong>Is this the correct project location?</strong> Drag the marker to change it. We recommend the marker to the front door.</p>
+                            </div>
+                            <ul class="lat_long_show">
+                              <li class="show_latitude"><strong>Latitude:</strong> <input type="text" name="latitude" id="latitude" class="form-control" value="{{ project_details.latitude|default:0 }}"/></li>
+                              <li class="show_longitude"><strong>Longitude:</strong> <input type="text" name="longitude" id="longitude" onblur="set_ariel_street_map_view();" class="form-control" value="{{ project_details.longitude|default:0 }}"/></li>
+                              {% if project_details.latitude and project_details.longitude%}
+                              <li class="make_default_address" onclick="make_default_address()">Reset Marker</li>
+                              {% endif %}
+                            </ul>
+                          </div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="enable_street_view" class="pb20">Enable Street View <a href="javascript:void(0)" data-toggle="tooltip" data-placement="left" title="Enable Street View" class="tooltip-icon"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i></a>
+                              <label class="switch small">
+                                <input type="checkbox" name="enable_street_view" id="enable_street_view" value="1" {% if project_details.is_street_view == True %}checked{% endif %} />
+                                <span class="slide round"></span>
+                              </label></label>
+                              <div id="map"></div>
+                              <div class="map-area" id="street-view" style="height:350px;">
+                                <img src="{% static 'admin/images/Mask_Group_2.png' %}" alt="real estate sales">
+                              </div>
+
+                            </div>
+                          </div>
+                          <div class="clearfix"></div>
+                          <div class="col-md-6">
+                            <div class="form-group">
+                              <label for="enable_map_view" class="pb20">Enable Map View <a href="javascript:void(0)" data-toggle="tooltip" data-placement="left" title="Enable Map View" class="tooltip-icon"><i class="fas fa-question-circle" aria-hidden="true" role="presentation"></i></a>
+                              <label class="switch small">
+                                <input type="checkbox" name="enable_map_view" aria-label="Enable Map View" id="enable_map_view" value="1" {% if project_details.is_map_view == True %}checked{% endif %} />
+                                <span class="slide round"></span>
+                              </label></label>
+                              <div class="map-area" id="map-view-map" style="height:350px;">
+                                <img src="{% static 'admin/images/Rectangle_614.png' %}" alt="real estate sales">
+                              </div>
+
+                            </div>
+                          </div>
+
+                          <div class="col-md-12">
+                            <div class="form-group">
+                              <label for="map_url">Virtual Tour Url</label>
+                              <input type="text" class="form-control" aria-label="Virtual Tour Url" name="map_url" id="map_url" placeholder="Enter Url" value="{{ project_details.map_url|default:'' }}">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div><!-- End .panel -->
+
+              </div><!-- panel-group -->
+            </div><!-- End .customscroll -->
+
+            <div class="clearfix pt30">
+              <!-- <button type="button" name="project_map_submit_next_btn" id="project_map_submit_next_btn" value="Next" class="btn btn-primary">Loading...</button><button type="button" name="project_map_submit_exit_btn" id="project_map_submit_exit_btn" value="save_exit" class="btn btn-primary">Loading...</button><a href="/admin/project-list/" class="btn btn-primary-bdr">Cancel</a> -->
+               <button type="button" name="project_map_submit_next_btn" id="project_map_submit_next_btn" value="Next" class="btn btn-primary">Loading...</button><a href="/admin/project-list/" class="btn btn-primary-bdr">Cancel</a>
+            </div>
+
+          </div><!-- End .col-md-10 -->
+          </form>
+        </div><!-- End .row -->
+      </div><!-- End .dashboard-body -->
+<div class="overlay" style="display:none;">
+              <div class="loader">Loading...</div>
+            </div>
+{% endblock %}
+{% block js_content %}
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/ckeditor/ckeditor.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/developer_project.js' %}?v=1.1"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.1"></script>
+  <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+  <script
+      src="https://maps.googleapis.com/maps/api/js?key={{site_detail.google_map_key}}&callback=initmap&libraries=places&v=weekly"
+      async
+    ></script>
+
+
+<script>
+  $(document).ready(function () {
+    $("#project_map_submit_next_btn, #project_map_submit_exit_btn").on("click", function (event) {
+      event.preventDefault(); // Prevent the default behavior
+      event.stopPropagation(); // Stop the event from propagating
+    });
+  });
+
+  var latitude = '{{ project_details.latitude|default:0 }}';
+  var longitude = '{{ project_details.longitude|default:0 }}';
+    $(function() {
+      //init_ariel_view();
+      $('#datetimepicker1, #datetimepicker2').datetimepicker({
+
+      });
+    $('[data-toggle="tooltip"]').tooltip();
+    });
+
+function initmap() {
+      if(latitude && longitude){
+        const fenway = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
+        myLatlng = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
+
+        var myOptions = {
+          zoom: 19,
+          zoomControl: true,
+          center: myLatlng,
+          mapTypeId: 'satellite'
+        };
+        const map = new google.maps.Map(document.getElementById("map-view-map"), {
+          center: fenway,
+          zoom: 18,
+        });
+        const panorama = new google.maps.StreetViewPanorama(
+          document.getElementById("street-view"),
+          {
+            position: fenway,
+            pov: {
+              heading: 34,
+              pitch: 10,
+            },
+          }
+        );
+        map.setStreetView(panorama);
+
+        const ariel_map = new google.maps.Map(document.getElementById("ariel-view-map"), myOptions);
+        ariel_map.setTilt(45);
+        var image="/static/admin/images/pin-icon.png";
+        var project_map_address = $('#project_map_address').val();
+        var image="/static/admin/images/pin-icon.png";
+
+        myMarker = new google.maps.Marker({
+          position: myLatlng,
+          draggable: true,
+          title: project_map_address,
+          icon: {
+            url: image,
+            scaledSize: new google.maps.Size(30, 45), // scaled size
+            origin: new google.maps.Point(0,0), // origin
+          }
+        });
+        myMarker.setMap(ariel_map);
+        google.maps.event.addListener(myMarker, 'dragend', function() {
+        getPosition(myMarker);
+        });
+        fetchNearbyPlaces(latitude, longitude);
+      }
+}
+
+function getPosition(pos) {
+      var latitude = pos.position.lat();
+      var longitude = pos.position.lng();
+      $('#latitude').val(latitude);
+      $('#longitude').val(longitude);
+      fetchNearbyPlaces(latitude,longitude);
+      initGlmap(latitude, longitude);
+}
+
+function geocodePosition(pos) {
+        var geocoder = new google.maps.Geocoder();
+      geocoder.geocode({
+        latLng: pos
+      }, function(responses) {
+        if (responses && responses.length > 0) {
+          try{
+            myMarker.formatted_address = responses[0].formatted_address;
+            var latitude = responses[0].geometry.location.lat();
+            var longitude = responses[0].geometry.location.lng();
+            console.log(responses[0]);
+          }catch(ex){
+            console.log(ex);
+          }
+          try{
+            mapMarker.formatted_address = responses[0].formatted_address;
+          }catch(ex){
+            console.log(ex);
+          }
+
+          var latitude = responses[0].geometry.location.lat();
+          var longitude = responses[0].geometry.location.lng();
+          var new_address = responses[0].formatted_address;
+          $('#actual_address').val(new_address);
+          $('#latitude').val(latitude);
+          $('#longitude').val(longitude);
+          initGlmap(latitude, longitude);
+          } else {
+          myMarker.formatted_address = 'Cannot determine address at this location.';
+          mapMarker.formatted_address = 'Cannot determine address at this location.';
+          }
+      });
+    }
+
+function make_default_address(){
+  var default_latitude = $("#default_latitude").val();
+  var default_longitude = $("#default_longitude").val();
+  $("#latitude").val(default_latitude);
+  $("#longitude").val(default_longitude);
+  $("#actual_address").val("");
+  initgmap(default_latitude, default_longitude);
+}
+
+function set_ariel_street_map_view(){
+  var set_latitude = $("#latitude").val();
+  var set_longitude = $("#longitude").val();
+  $("#actual_address").val("");
+  initgmap(set_latitude, set_longitude);
+}
+
+
+function initgmap(latitude, longitude) {
+      if(latitude && longitude){
+        const fenway = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
+        myLatlng = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
+
+        var myOptions = {
+          zoom: 19,
+          zoomControl: true,
+          center: myLatlng,
+          mapTypeId: 'satellite'
+        };
+        const map = new google.maps.Map(document.getElementById("map-view-map"), {
+          center: fenway,
+          zoom: 18,
+        });
+        const panorama = new google.maps.StreetViewPanorama(
+          document.getElementById("street-view"),
+          {
+            position: fenway,
+            pov: {
+              heading: 34,
+              pitch: 10,
+            },
+          }
+        );
+        map.setStreetView(panorama);
+
+        const ariel_map = new google.maps.Map(document.getElementById("ariel-view-map"), myOptions);
+        ariel_map.setTilt(45);
+        var image="/static/admin/images/pin-icon.png";
+        var project_map_address = $('#project_map_address').val();
+        var image="/static/admin/images/pin-icon.png";
+
+        myMarker = new google.maps.Marker({
+          position: myLatlng,
+          draggable: true,
+          title: project_map_address,
+          icon: {
+            url: image,
+            scaledSize: new google.maps.Size(30, 45), // scaled size
+            origin: new google.maps.Point(0,0), // origin
+          }
+        });
+        myMarker.setMap(ariel_map);
+        google.maps.event.addListener(myMarker, 'dragend', function() {
+          getPosition(myMarker);
+        });
+      }
+}
+
+function initGlmap(latitude, longitude) {
+      if(latitude && longitude){
+        const fenway = { lat: parseFloat(latitude), lng: parseFloat(longitude) };
+        myLatlng = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
+
+        var myOptions = {
+          zoom: 19,
+          zoomControl: true,
+          center: myLatlng,
+          mapTypeId: 'satellite'
+        };
+        const map = new google.maps.Map(document.getElementById("map-view-map"), {
+          center: fenway,
+          zoom: 18,
+        });
+        const panorama = new google.maps.StreetViewPanorama(
+          document.getElementById("street-view"),
+          {
+            position: fenway,
+            pov: {
+              heading: 34,
+              pitch: 10,
+            },
+          }
+        );
+        map.setStreetView(panorama);
+        ariel_map.setTilt(45);
+        var image="/static/admin/images/pin-icon.png";
+        var project_map_address = $('#project_map_address').val();
+        var image="/static/admin/images/pin-icon.png";
+
+        myMarker = new google.maps.Marker({
+          position: myLatlng,
+          draggable: true,
+          title: project_map_address,
+          icon: {
+            url: image,
+            scaledSize: new google.maps.Size(30, 45), // scaled size
+            origin: new google.maps.Point(0,0), // origin
+          }
+        });
+        myMarker.setMap(ariel_map);
+        google.maps.event.addListener(myMarker, 'dragend', function() {
+          getPosition(myMarker);
+        });
+      }
+}
+
+function fetchNearbyPlaces(latitude, longitude) {
+    $("#project_map_submit_next_btn, #project_map_submit_exit_btn").text("Loading...");
+    $("#project_map_submit_next_btn, #project_map_submit_exit_btn").on("click", function (event) {
+      event.preventDefault(); // Prevent the default behavior
+      event.stopPropagation(); // Stop the event from propagating
+      console.log("Clicks are disabled for this button.");
+    });
+    const radius = 5000; // 10 km radius
+    const types = [
+      // "store",             // Shopping
+      "shopping_mall",     // Shopping
+      "supermarket",       // Shopping
+      // "clothing_store",    // Shopping
+      // "electronics_store", // Shopping
+      "gym",               // Lifestyle
+      // "spa",               // Lifestyle
+      "restaurant",        // Lifestyle
+      "park",              // Lifestyle
+      // "night_club",         // Lifestyle,
+      "school",
+      "hospital",
+    ];
+    const shoppingResults = [];
+    const schoolResults = [];
+    const hospitalResults = [];
+    const lifestyleResults = [];
+
+  const service = new google.maps.places.PlacesService(document.createElement("div"));
+
+    // Loop over each type and perform a separate search
+    types.forEach((type,index) => {
+      const request = {
+        location: new google.maps.LatLng(latitude, longitude),
+        radius: radius,
+        type: type,
+      };
+      const fetchResults = (nextPageToken = null) => {
+        if (nextPageToken) {
+          request.pagetoken = nextPageToken;
+        }
+
+        service.nearbySearch(request, function (results, status, pagination) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            results.forEach((place) => {
+              const simplifiedPlace = {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                name: place.name,
+                icon: place.icon,
+              };
+              if (place.types.includes("store") || place.types.includes("shopping_mall") || place.types.includes("supermarket") || place.types.includes("clothing_store") || place.types.includes("electronics_store")) {
+                shoppingResults.push(simplifiedPlace);
+              } else if (place.types.includes("gym") || place.types.includes("spa") || place.types.includes("restaurant") || place.types.includes("park") || place.types.includes("night_club")) {
+                lifestyleResults.push(simplifiedPlace);
+              } else if (place.types.includes("school")) {
+                schoolResults.push(simplifiedPlace);
+              } else if (place.types.includes("hospital")) {
+                hospitalResults.push(simplifiedPlace);
+              }
+            });
+            if (pagination.hasNextPage) {
+              pagination.nextPage();
+            } else {
+              if(index === 6) {
+                $('#shopping_json').val(JSON.stringify(shoppingResults));
+                $('#hospital_json').val(JSON.stringify(hospitalResults));
+                $('#school_json').val(JSON.stringify(schoolResults));
+                $('#lifestyle_json').val(JSON.stringify(lifestyleResults));
+                $("#project_map_submit_next_btn").text("Next");
+                $("#project_map_submit_exit_btn").text("Save & Exit");
+
+                $("#project_map_submit_next_btn, #project_map_submit_exit_btn").off("click").on("click", function () {});
+                // console.log(`All ${type} places fetched. Total results:`, shoppingResults, lifestyleResults, schoolResults, hospitalResults);
+              }
+            }
+          } else {
+            if(index === 6){
+              $("#project_map_submit_next_btn").text("Next");
+              $("#project_map_submit_exit_btn").text("Save & Exit");
+              $("#project_map_submit_next_btn, #project_map_submit_exit_btn").off("click").on("click", function () {});
+            }
+            console.error(`${type} search failed with status:`, status);
+          }
+        });
+      };
+      fetchResults(); // Start the search for this type
+    });
+  }
+
+
+</script>
+<script
+      src="https://maps.googleapis.com/maps/api/js?key={{site_detail.google_map_key}}&callback=initmap&libraries=places&v=weekly"
+      async
+    ></script>
+{% endblock %}

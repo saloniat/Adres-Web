@@ -1,0 +1,206 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% load dashboard_extra %}
+{% block title %}{{title}}{% endblock %}
+{% block styles %}
+    <link href="{% static 'admin/css/dropzone.css' %}?v=2.2" type="text/css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+
+        <div class="row">
+          <form name="add_employee_form" id="add_employee_form" method="post" autocomplete="off">
+            {% csrf_token %}
+          <div class="col-md-12 col-sm-12">
+            <div class="back-btn">
+              <a href="/admin/employee/"><i class="fas fa-chevron-left" aria-hidden="true" role="presentation"></i> Back</a>
+            </div>
+
+            <h6>
+              Employee Information
+            </h6>
+            <div class="box clearfix">
+              <div class="row">
+                <input type="hidden" name="employee_id" id="employee_id" value="{{ details.id|default:'' }}"/>
+                <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="first_name">Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="First Name" name="first_name" id="first_name" placeholder="Enter First Name" value="{{ details.first_name|default:'' }}" maxlength="40">
+                  </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="first_name_ar">Name In Arabic <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="First Name" name="first_name_ar" id="first_name_ar" placeholder="Enter First Name In Arabic" value="{{ details.first_name_ar|default:'' }}" maxlength="40">
+                  </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="email">Email <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" aria-label="Email" name="email" id="email" placeholder="Enter Email" value="{{ details.email|default:'' }}">
+                  </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="phone_no">Phone <span class="text-danger">*</span></label>
+                    <div class="ph-code">
+                      <select name="phone_country_code" class="select">
+                        <option value="971" {% if details.phone_country_code == 971 %} selected {% endif %}>+971</option>
+                      </select>
+                      <input type="text" class="form-control" aria-label="Phone" name="phone_no" id="phone_no" placeholder="Phone" value="{{ details.phone_no|default:'' }}" data-inputmask="'mask': '99 999 9999'" data-inputmask-clearincomplete="true">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="address">Address <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="Address" name="address" id="address" autocomplete="nope" placeholder="Enter Address" value="{{ details.address_first|default:'' }}">
+                  </div>
+                </div>
+
+                <!-- <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="zip_code">Zip Code <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" aria-label="Zip" name="zip_code" id="zip_code" autocomplete="nope" placeholder="Enter Zip Code" value="{{ details.postal_code|default:'' }}" maxlength="5">
+                  </div>
+                </div> -->
+                <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="state">State <span class="text-danger">*</span></label>
+                    <select class="state form-control" aria-label="State" name="state" id="state" >
+                      <option value="">Select</option>
+                      {% for state in state_list %}
+                        <option value="{{ state.id }}" data-short-code="{{ state.iso_name }}" {% if state.id == details.state %}selected{% endif %}>{{ state.state_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                  <div class="form-group">
+                    <label for="status">Status <span class="text-danger">*</span></label>
+                    <select name="status" aria-label="Status" class="agent_status form-control" id="status">
+                      <option value="">Select</option>
+                      <option value="1" {% if details.status == 1 %}selected{% endif %}>Active</option>
+                      <option value="2" {% if details.status == 2 %}selected{% endif %}>InActive</option>
+                    </select>
+                  </div>
+                </div>
+                {% if is_broker == True or request.session.user_type == 4%}
+                  <div class="col-lg-4 col-md-6">
+                    <div class="form-group">
+                      <label for="status">Developer <span class="text-danger">*</span></label>
+                      <select name="admin_user" aria-label="admin_user" class="developer form-control" id="admin_user">
+                        <option value="">Select Developer</option>
+                        {% for developer in developer_list %}
+                          <option value="{{ developer.id }}" {% if details.developer == developer.id or developer_id|add:'0' == developer.id|add:'0' %}selected{% endif %} >{{ developer.first_name }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                {% else %}
+                  <input type="hidden" name="admin_user" id="admin_user" value="{{ details.developer|default:user_id }}">
+                {% endif %}
+
+              </div>
+              <div class="form-group">
+                <label for="uploadAgentImgFrm">
+                  Upload Employee Photo
+                </label>
+
+                <div class="upload-fav pt10 pb0">
+                  <div class="item">
+                    <!--<form action="/upload-target" class="dropzone" id="favicon_img" name="favicon_img"></form>-->
+                    <div class="dropzone" id="uploadAgentImgFrm">
+                      <input type="hidden" id="employee_img_id" name="employee_img_id" value="{{ details.profile_image.upload_id|default:'' }}"/>
+                      <input type="hidden" name="employee_img_name" id="employee_img_name" value="{{ details.profile_image.doc_file_name|default:'' }}"/>
+                      <div class="dz-default dz-message" data-dz-message="">
+                        <!--<input name="file" type="file" id="favicon_img" name="favicon_img" />
+                        <button><i class="fas fa-upload"></i> Upload favicon</button>-->
+
+                        <div class="block">
+                          <button type="button" class="btn btn-primary"><i class="fas fa-upload" aria-hidden="true" role="presentation"></i> Upload Photo</button>
+                        </div>
+                        <div class="block">
+                          or
+                        </div>
+                        <div class="block">
+                          <h6>
+                            Drag & Drop Docs
+                            <span>Supported Files:  png, jpg, jpeg</span>
+                          </h6>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                  <div class="item" class="agentImageDiv" id="agentImageDiv" style="{% if details.profile_image.doc_file_name %}{% else %}display:none;{% endif %}">
+                    <div class="artical-icon agent-section">
+                      <figure>
+                        <img src="{{ azure_blob_url }}{{ details.profile_image.bucket_name }}/{{ details.profile_image.doc_file_name }}" class="agentImageId" id="agentImageId" alt="real estate sales" width="211" height="113">
+                      </figure>
+                      <a href="javascript:void(0)" class="confirm_image_delete" data-image-id="{{ details.profile_image.upload_id|default:'' }}" data-image-name="{{ details.profile_image.doc_file_name|default:'' }}" data-image-section="{{ details.profile_image.bucket_name|default:'' }}" data-count=""><i class="fas fa-trash-alt" aria-hidden="true" role="presentation"></i></a>
+                    </div>
+                  </div>
+
+                </div><!-- End .uplaod-fav -->
+                
+              </div>
+              <p id="agent_image_error"  class="custom_image_error" style="display:none;">Image is required.</p>
+              <input type="hidden" name="total_permission" id="total_permission" value="{{ permission_list|length }}" />
+              
+            </div><!-- End .box -->
+
+            <div class="clearfix pt30">
+              <button type="submit" id="submit" class="btn btn-primary">Save</button> 
+              <a href="/admin/employee/" class="btn btn-primary-bdr">Cancel</a>
+            </div>
+            <div class="overlay" style="display:none;">
+              <div class="loader">Loading...</div>
+            </div>
+          </div><!-- End .col-md-10 -->
+          </form>
+        </div><!-- End .row -->
+      </div><!-- End .dashboard-body -->
+{% endblock %}
+{% block js_content %}
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/mask_input.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.blockUI.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_validator.js' %}?v=2.4"></script>
+  <script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/employee.js' %}?v=3.6"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=3.6"></script>
+  <script type="text/javascript" src="{% static 'admin/js/dropzone.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/js/custom_dropzone.js' %}?v=3.1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
+  <script type="text/javascript" src="{% static 'admin/js/add_agent_tour.js' %}?v=3.1"></script>
+
+  <script>
+      var is_first_login = {{request.session.is_first_admin_login}};
+      var response_msg = '{{ response.msg }}';
+      var response_error = '{{ response.error }}';
+      $(document).ready(function(){
+        myfunction(response_error, response_msg);
+      });
+      function myfunction(){
+        if(response_error == '0' && response_msg != ""){
+          $.growl.notice({title: "Business Info ", message: response_msg, size: 'large'});
+        }else if(response_error == '1' && response_msg != ""){
+          $.growl.error({title: "Business Info ", message: response_msg, size: 'large'});
+        }else{
+
+        }
+      }
+      $('#state, #status, .developer').chosen();
+      $('[data-toggle="tooltip"]').tooltip();
+      check_permission();
+  </script>
+{% endblock %}

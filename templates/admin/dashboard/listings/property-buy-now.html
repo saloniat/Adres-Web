@@ -1,0 +1,43 @@
+{% load static %}
+{% load dashboard_extra %}
+{% load humanize %}
+{% if all_data %}
+{% for data in all_data %}
+    <tr role="row">
+        <td role="rowheader">
+        {{ forloop.counter|add:start_index }}
+        </td>
+        <td role="rowheader">
+            {{data.first_name|default:""}}
+        </td>
+         <td role="rowheader">
+            <a href="mailto:{{data.email}}">{{data.email|default:"-"}}</a>
+        </td>
+        <td role="rowheader">
+            +{{data.phone_country_code|default:971}} {{data.phone_no|default:'-'|format_phone}}
+        </td>
+        <td role="rowheader">
+            AED {{data.buy_now_amount|default:'-'}}
+        </td>
+        <td role="rowheader" class="convert_to_local_date_time" data-value="{{ data.added_on|default:'' }}">
+        </td>
+        {% if not data.is_bidding_start and data.winner_id == None and data.property_status == 1 %}
+            <td role="rowheader" onclick="acceptBuyNow({{data.property_id}}, {{data.user_id}});"><span class="btn btn-primary btn-xs">Accept</span></td>
+        {% elif data.winner_id and data.buy_now_status == 1 and data.winner_id == data.user_id %}
+            <td role="rowheader">
+                Accepted
+            </td>
+        {% else %}    
+            <td role="rowheader">Rejected</td>
+        {% endif %}
+
+        <td role="rowheader">
+            {{data.transaction_status|default:"N/A"}}
+        </td>
+    </tr>
+{% endfor %}
+{% endif %}
+
+{% block js_content %}
+<script type="text/javascript" src="{% static 'admin/js/listing.js' %}?v=4.7"></script>
+{% endblock %}

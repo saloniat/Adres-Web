@@ -1,0 +1,205 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+{% block title %}{{title}}{% endblock %}
+{% load dashboard_extra %}
+{% block styles %}
+
+<link rel="stylesheet" type="text/css"
+  href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+{% endblock %}
+{% block content %}
+
+<div class="dashboard-body">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="listing-top">
+        <div class="block">
+          <h6>
+            <strong>User Verify Document</strong>
+          </h6>
+        </div>
+        <div class="block filters">
+          &nbsp;
+        </div>
+      </div><!-- End .listing-top -->
+    </div>
+    {% if verification_data.status == 24 %}
+      <div class="col-md-6">
+        <div class="verify-wrap">
+          <div class="verify-item">
+            {% if verification_data.verification_type == 1%}
+              <div class="verify-box">
+                <h6>
+                  Front of EID
+                </h6>
+                <ol class="pdf-list">
+                  <li>
+                    <div class="icon">
+                      <i class="fa-regular fa-file-lines"></i>
+                    </div>
+                    <h6>
+                      <a href="{% if verification_data.front_eid.doc_file_name %}{{ azure_blob_url }}{{ verification_data.front_eid.bucket_name }}/{{ verification_data.front_eid.doc_file_name }}{% endif %}" target="_blank">{{verification_data.front_eid.doc_file_name}}</a>
+                    </h6>
+                  </li>
+                </ol>
+              </div>
+              <div class="verify-box">
+                <h6>
+                  Back of EID
+                </h6>
+                <ol class="pdf-list">
+                  <li>
+                    <div class="icon">
+                      <i class="fa-regular fa-file-lines"></i>
+                    </div>
+                    <h6>
+                      <a href="{% if verification_data.back_eid.doc_file_name %}{{ azure_blob_url }}{{ verification_data.back_eid.bucket_name }}/{{ verification_data.back_eid.doc_file_name }}{% endif %}" target="_blank">{{verification_data.back_eid.doc_file_name}}</a>
+                    </h6>
+                  </li>
+                </ol>
+              </div>
+            {% elif verification_data.verification_type == 2%}
+            <div class="verify-box">
+              <h6>
+                Passport
+              </h6>
+              <ol class="pdf-list">
+                <li>
+                  <div class="icon">
+                    <i class="fa-regular fa-file-lines"></i>
+                  </div>
+                  <h6>
+                    <a href="{% if verification_data.passport.doc_file_name %}{{ azure_blob_url }}{{ verification_data.passport.bucket_name }}/{{ verification_data.passport.doc_file_name }}{% endif %}" target="_blank">{{verification_data.passport.doc_file_name}}</a>
+                  </h6>
+                </li>
+              </ol>
+            </div>
+            {% endif %}  
+          </div>
+
+          <form id="account_verification_frm" name="account_verification_frm" method="post" autocomplete="off">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{user_id}}">
+            <ul class="verify-radio">
+              <li>
+                <input type="radio" name="verification_status" class="css-radio verification_status" id="accept" {% if verification_data.status == 25 %} checked {% endif %}  value="1">
+                <label for="accept" class="radio-label">Accept</label>
+              </li>
+              <li>
+                <input type="radio" name="verification_status" class="css-radio verification_status" id="reject" value="2" {% if verification_data.status == 26 %} checked {% endif %}>
+                <label for="reject" class="radio-label">Reject</label>
+              </li>
+            </ul>
+
+            <div class="form-group reject_reason" {% if verification_data.status != 26 %} style="display: none;" {% endif %}>
+              <textarea class="form-controlT" name="reject_reason" id="" rows="4" placeholder="Reason for Rejection"></textarea>
+            </div>
+            <div class="clearfix">
+              <button class="btn btn-secondary" id="submit_frm" type="button">Submit</button>
+              <!-- <button class="btn btn-primary-bdr">Previous Rejections</button> -->
+            </div>
+          </form>
+
+
+        </div><!-- End .verify-doc -->
+      </div>
+    {% endif %}  
+
+    {% if verification_data.verification_history|length  %} 
+      <div class="col-md-6">
+          <div class="verify-history">
+            <h6>
+              Previous Data
+            </h6>
+                {% for data in verification_data.verification_history %}
+                  <div class="reject-item">
+                    {% if data.verification_type == 1%}
+                      <div class="block">
+                        {% if data.status == 25 %}Verification Date: {% else %} Rejection Date: {% endif %}
+                        <div class="date convert_to_local_date_time" data-value="{% if data.status == 25 %} {{data.verification_date}} {% else %} {{data.rejection_date}} {% endif %}">Rejection Date: 04 January 2025</div>
+                        {% if data.added_on %} Submitted Date: 
+                          <div class="date convert_to_local_date_time" data-value="{% if data.added_on %} {{data.added_on}} {% endif %}"></div>
+                        {% endif %} 
+                        <h6>
+                          Front of EID
+                        </h6>
+                        <ol class="pdf-list">
+                          <li>
+                            <div class="icon">
+                              <i class="fa-regular fa-file-lines"></i>
+                            </div>
+                            <h6>
+                              <a href="{% if data.front_eid.doc_file_name %}{{ azure_blob_url }}{{ data.front_eid.bucket_name }}/{{ data.front_eid.doc_file_name }}{% endif %}" target="_blank">{{data.front_eid.doc_file_name}}</a>
+                            </h6>
+                          </li>
+                        </ol>
+                      </div>
+                      <div class="block">
+                        {% if data.status == 25 %}Verification Date: {% else %} Rejection Date: {% endif %}
+                        <div class="date convert_to_local_date_time" data-value="{% if data.status == 25 %} {{data.verification_date}} {% else %} {{data.rejection_date}} {% endif %}">Rejection Date: 04 January 2025</div>
+                        <h6>
+                          Back of EID
+                        </h6>
+                        <ol class="pdf-list">
+                          <li>
+                            <div class="icon">
+                              <i class="fa-regular fa-file-lines"></i>
+                            </div>
+                            <h6>
+                              <a href="{% if data.back_eid.doc_file_name %}{{ azure_blob_url }}{{ data.back_eid.bucket_name }}/{{ data.back_eid.doc_file_name }}{% endif %}" target="_blank">{{data.back_eid.doc_file_name}}</a>
+                            </h6>
+                          </li>
+                        </ol>
+                      </div>
+                    {% else %}
+                      <div class="block">
+                        {% if data.status == 25 %}Verification Date: {% else %} Rejection Date: {% endif %}
+                        <div class="date convert_to_local_date_time" data-value="{% if data.status == 25 %} {{data.verification_date}} {% else %} {{data.rejection_date}} {% endif %}">Rejection Date: 04 January 2025</div>
+                        {% if data.added_on %} Submitted Date: 
+                          <div class="date convert_to_local_date_time" data-value="{% if data.added_on %} {{data.added_on}} {% endif %}"></div>
+                        {% endif %}
+                        <h6>
+                          Passport
+                        </h6>
+                        <ol class="pdf-list">
+                          <li>
+                            <div class="icon">
+                              <i class="fa-regular fa-file-lines"></i>
+                            </div>
+                            <h6>
+                              <a href="{% if data.passport.doc_file_name %}{{ azure_blob_url }}{{ data.passport.bucket_name }}/{{ data.passport.doc_file_name }}{% endif %}" target="_blank">{{data.passport.doc_file_name}}</a>
+                            </h6>
+                          </li>
+                        </ol>
+                      </div>
+                    {% endif %}
+                    {% if data.comment is not None %}
+                      <div class="clearfix">
+                        <div>
+                          Reason: <b>{{data.comment|default:""}}</b>
+                        </div>
+                      </div>
+                    {% endif %}
+                  </div><!-- End .reject-item --> 
+                {% endfor %} 
+            
+          </div>
+      </div>
+    {% endif %}
+
+  </div>
+
+</div><!-- End .dashboard-body -->
+
+<div class="overlay" style="display:none;">
+  <div class="loader">Loading...</div>
+</div>
+{% endblock %}
+
+{% block js_content %}
+<script type="text/javascript" src="{% static 'admin/js/user-verification.js' %}?v=3.1"></script>
+<script type="text/javascript" src="{% static 'admin/js/jquery.growl.js' %}"></script>
+<script type="text/javascript" src="{% static 'admin/js/custom_js.js' %}?v=4.6"></script>
+<script>
+</script>
+{% endblock %}

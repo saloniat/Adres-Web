@@ -1,0 +1,289 @@
+{% load static %}
+<div id="sidebar" class="sidebar collapsed">
+  <a role="button" href="javascript:void(0)" aria-label="menu" id="btn-collapse" class="sidebar-collapser" tabindex="2"><i class="fa-solid fa-chevron-left" role="img" aria-label="Toggle"></i></a>
+  <div class="sidebar-layout">
+    <div class="logo">
+      <img class="logo_full" src="{% static 'admin/images/auction.svg' %}" alt="Auction logo" role="img" aria-label="logo">
+      <img class="logo_icon" src="{% static 'admin/images/auction-icon.svg' %}" alt="Auction logo" role="img" aria-label="logo">
+    </div>
+    {% if not request.session.first_time_log_in %}
+    <div class="sidebar-content">
+      <nav class="menu open-current-submenu" role="navigation" aria-label="Primary">
+        <ul>
+          {% if 7 in access_permission_list %}
+            <li class="menu-item">
+              <a role="link" href="/admin/dashboard/" class="{% if active_menu == 'regbidder'%}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fa-solid fa-gauge-high" aria-hidden="true" role="img" aria-label="Dashboard"></i>
+                </span>
+                <span class="menu-title">Dashboard</span>
+              </a>
+            </li>
+          {% endif %}
+          {% if request.session.user_type == 2 %}  
+            <li class="menu-item">
+              <a role="link" href="/admin/business-info/" class="{% if active_menu == 'site setting' %}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fa-solid fa-gear" aria-hidden="true" role="img" aria-label="Settings"></i>
+                </span>
+                <span class="menu-title">Business Info</span>
+              </a>
+            </li> 
+          {% endif %}
+
+          {% if 1 in access_permission_list or 4 in access_permission_list or 26 in access_permission_list or 27 in access_permission_list %}
+          <li class="menu-item sub-menu">
+            <a role="link" href="javascript:void(0)" class="{% if active_menu == 'user setting' %}active{% endif%}">
+              <span class="menu-icon">
+                <i class="fas fa-user" aria-hidden="true" role="img" aria-label="User Management"></i>
+              </span>
+              <span class="menu-title">User Management</span>
+            </a>
+            <div class="sub-menu-list">
+              <ul>
+                {% if 1 in access_permission_list %}
+                  <li class="menu-item">
+                    <a role="link" href="/admin/sub-admin/" class="{% if active_submenu == 'sub-admin' %}active{% endif %}">
+                      <span class="menu-title">Sub Admin</span>
+                    </a>
+                  </li>
+                {% endif %}
+
+                {% if 4 in access_permission_list %}
+                  <li class="menu-item">
+                    <a role="link" href="/admin/users/" class="{% if active_submenu == 'users'%}active{% endif%}">
+                      <span class="menu-title">Buyers</span>
+                    </a>
+                  </li>
+                {% endif %}  
+                
+                {% if 26 in access_permission_list %}
+                  <li class="menu-item">
+                    <a href="/admin/developers/" class="{% if active_submenu == 'developers' %}active{% endif%}">
+                      <span class="menu-title">Developers</span>
+                    </a>
+                  </li>
+                {% endif %}  
+                
+                {% if 27 in access_permission_list %}
+                  <li class="menu-item">
+                    <a href="/admin/employee/" class="{% if active_submenu == 'employee' %}active{% endif%}">
+                      <span class="menu-title">Employee</span>
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          </li>
+          {% endif %}
+          
+          {% if 24 in access_permission_list %}
+            <li class="menu-item">
+              <a role="link" href="/admin/project-list/" class="{% if active_menu == 'developer project'%}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fas fa-tasks" aria-hidden="true" role="img" aria-label="Project Management"></i>
+                </span>
+                <span class="menu-title">Projects</span>
+              </a>
+            </li>
+          {% endif %}
+
+          {% if 6 in access_permission_list %}
+            <li class="menu-item">
+              <a role="link" href="/admin/listing/" class="{% if active_menu == 'listing setting'%}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fa-solid fa-rectangle-list" aria-hidden="true" role="img" aria-label="Listing Management"></i>
+                </span>
+                <span class="menu-title">Listings</span>
+              </a>
+            </li>
+          {% endif %}
+          
+          {% if 2 in access_permission_list %}
+            <li class="menu-item">
+              <a role="link" href="/admin/bidder-registration/" class="{% if active_menu == 'regbidder'%}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fas fa-hammer" aria-hidden="true" role="img" aria-label="Bidder Registration"></i>
+                </span>
+                <span class="menu-title">Bidder Registration</span>
+              </a>
+            </li>
+          {% endif %}
+
+          {% if 25 in access_permission_list %}
+            <li class="menu-item">
+              <a role="link" href="/admin/auction-dashboard/" class="{% if active_submenu == 'auction-dashboard'%}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fa fa-desktop" aria-hidden="true" role="img" aria-label="Listing Monitor"></i>
+                </span>
+                <span class="menu-title">Auction Monitor</span>
+              </a>
+            </li> 
+          {% endif %}
+          
+          {% if 18 in access_permission_list %}
+            <li class="menu-item">
+              <a role="link" href="/admin/chat/" class="{% if active_menu == 'chat'%}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fas fa-comments" aria-hidden="true" role="img" aria-label="Chat"></i>
+                  <div class="circle-dot"></div>
+                </span>
+                <!-- <span class="menu-title">Chat <div id="adminChatCount" class="circle">0</div></span> -->
+                 <span class="menu-title">Chat </span>
+              </a>
+            </li>
+          {% endif %}
+
+          {% if 16 in access_permission_list %}
+            <li class="menu-item sub-menu">
+              <a role="link" href="javascript:void(0)" class="{% if active_menu == 'site setting' %}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fa-regular fa-file-lines" aria-hidden="true" role="img" aria-label="Content Management"></i>
+                </span>
+                <span class="menu-title">Content Management</span>
+              </a>
+              <div class="sub-menu-list">
+                <ul>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/cms-list/" class="{% if active_submenu == 'cms-list'%}active{% endif%}">
+                      <span class="menu-title">CMS Management</span>
+                    </a>
+                  </li>
+
+                  <li class="menu-item">
+                    <a role="link" href="/admin/blogs/" class="{% if active_submenu == 'blogs'%}active{% endif%}">
+                      <span class="menu-title">Blog Management</span>
+                    </a>
+                  </li>
+
+                  <li class="menu-item">
+                    <a role="link" href="/admin/faq-list/" class="{% if active_submenu == 'blog-list'%}active{% endif%}">
+                      <span class="menu-title">FAQ Management</span>
+                    </a>
+                  </li>
+                  
+                  <li class="menu-item">
+                    <a role="link" href="/admin/email-template-list/" class="{% if active_submenu == 'blog-list'%}active{% endif%}">
+                      <span class="menu-title">Email Templates</span>
+                    </a>
+                  </li>
+
+                </ul>
+              </div>
+            </li>
+          {% endif %}
+
+          {% if 17 in access_permission_list %}
+            <li class="menu-item sub-menu">
+              <a role="link" href="javascript:void(0)" class="{% if active_menu == 'site setting' %}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="fa-solid fa-gears" aria-hidden="true" role="img" aria-label="General Settings"></i>
+                </span>
+                <span class="menu-title">General Settings</span>
+              </a>
+              <div class="sub-menu-list">
+                <ul>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/lookup-object-status/?o_type=3" class="{% if active_submenu == 'lookup-object-status'%}active{% endif%}">
+                      <span class="menu-title">Lookup Objects Status</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/lookup-objects/" class="{% if active_submenu == 'lookup-objects'%}active{% endif%}">
+                      <span class="menu-title">Lookup Objects</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/lookup-status/" class="{% if active_submenu == 'lookup-status'%}active{% endif%}">
+                      <span class="menu-title">Lookup Status</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/user-types/" class="{% if active_submenu == 'user-types'%}active{% endif%}">
+                      <span class="menu-title">User Types</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/permissions/" class="{% if active_submenu == 'permissions'%}active{% endif%}">
+                      <span class="menu-title">User Permissions</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/auction-types/" class="{% if active_submenu == 'auction-types'%}active{% endif%}">
+                      <span class="menu-title">Auction Types</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/document-types/" class="{% if active_submenu == 'document-types'%}active{% endif%}">
+                      <span class="menu-title">Document Types</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/blog-categories/" class="{% if active_submenu == 'blog-categories'%}active{% endif%}">
+                      <span class="menu-title">Blog Categories</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/event-types/" class="{% if active_submenu == 'event-types'%}active{% endif%}">
+                      <span class="menu-title">Event Types</span>
+                    </a>
+                  </li>
+                  <li class="menu-item">
+                    <a role="link" href="/admin/settings/site-settings/" class="{% if active_submenu == 'site-settings'%}active{% endif%}">
+                      <span class="menu-title">Site Settings</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+          {% endif %}
+
+          {% if 22 in access_permission_list %}
+            <li class="menu-item">
+              <a role="link" href="/admin/advertisement-list/" class="{% if active_menu == 'advertisement-list'%}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="glyphicon glyphicon-bullhorn" aria-hidden="true" role="img" aria-label="Advertisement"></i>
+                  <!-- <div class="circle-dot"></div> -->
+                </span>
+                <span class="menu-title">Advertisement</span>
+              </a>
+            </li>
+          {% endif %}
+          
+          {% if 12 in access_permission_list %}
+            <li class="menu-item sub-menu">
+              <a role="link" href="javascript:void(0)" class="{% if active_menu == 'pages' %}active{% endif%}">
+                <span class="menu-icon">
+                  <i class="far fa-address-card" aria-hidden="true" role="img" aria-label="Inquiry"></i>
+                </span>
+                <span class="menu-title">Inquiry</span>
+              </a>
+              <div class="sub-menu-list">
+                <ul>
+                    <li class="menu-item">
+                      <a role="link" href="/admin/contact-listing/" class="{% if active_submenu == 'contact_listing'%}active{% endif%}">
+                        <span class="menu-title">Contact Us</span>
+                      </a>
+                    </li>
+
+                  <!-- <li class="menu-item">
+                    <a role="link" href="/admin/schedule-tour-list/" class="{% if active_submenu == 'schedule_tours'%}active{% endif%}">
+                      <span class="menu-title">Schedule Tours</span>
+                    </a>
+                  </li> -->
+                </ul>
+              </div>
+            </li>
+          {% endif %}
+
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div><!-- End .sidebar -->
+
+<div id="overlay" class="overlay2"></div>
+<a id="btn-toggle" role="link" href="javascript:void(0)" area-label="Toggle" title="Toggle" class="sidebar-toggler break-point-sm">
+  <i class="ri-menu-line ri-xl" aria-hidden="true" role="img" aria-label="Toggle"></i>
+</a>

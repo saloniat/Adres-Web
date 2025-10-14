@@ -1,0 +1,137 @@
+{% extends "admin/layout/layout.html" %}
+{% load static %}
+
+{% block title %} Estimator Question List {% endblock title %}
+
+{% block style %}
+{% endblock %}
+
+{% block content %}
+{% load tz %}
+{% load humanize %}
+<div class="dashboard-body">
+  
+    <div class="listing-top">
+      <div class="block">
+        <h6>Estimator Question List</h6>
+      </div>
+      <div class="block">
+        <form action="" class="search-field top_search last">
+          <div class="search-icon"><i class="fas fa-search" aria-hidden="true" role="presentation"></i></div>
+          <input type="text" id="question_search" class="form-control input-sm" aria-label="Search" placeholder="Search for..." value="{{search|default:''}}" aria-label="Search for ...">
+          <button class="btn btn-secondary btn-xs searchBtn"  type="button" onclick="ajax_estimate_question_list()" aria-label="Go">Go!</button>
+        </form>
+      </div>
+    </div>
+    
+    <div class="listing-bottom">
+      
+      <div class="block" style="min-width: 130px;">
+        <select class="form-control input-sm"  aria-label="Select Status" name="question_status" id="question_status" onchange="ajax_estimate_question_list()">
+          <option value="">Select</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="block">
+        <a role="link" href="/admin/save-estimator-question/" type="button" class="btn btn-primary btn-xs" id="addEstimatorQuestion"><i class="fa fa-plus-circle" aria-hidden="true" role="presentation"></i> Add Question</a>
+      </div>
+    </div>
+    
+    <div class="x_content">
+
+      {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+            </button>{{ message }}
+        </div>
+      {% endfor %}
+      {% endif %}
+
+      <div class="table-responsive">
+        <table class="table bulk_action" cellpadding="0" cellspacing="0" width="100%" data-table="Estimator Question List Table" role="table">
+          <thead>
+            <tr role="row" class="headings">
+              <th class="column-title" role="columnheader" scope="col">ID </th>
+              <th class="column-title" role="columnheader" scope="col">Category </th>
+              <th class="column-title" role="columnheader" scope="col">Question </th>
+              <th class="column-title" role="columnheader" scope="col">Status </th>
+              <th class="column-title no-link last" role="columnheader" scope="col"><span class="nobr">Action</span>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody id="estimatorQuestionList">
+            {% if estimator_question_list %}
+                {% for ques in estimator_question_list %}
+                <tr role="row" class="even pointer">
+                  <th class=" " role="columnheader" scope="col">{{ forloop.counter0|add:sno }}</th>
+                  <td class=" " role="rowheader">{{ques.category_name}}</td>
+                  <td class=" " role="rowheader">{{ques.question}}</td>
+                  <td class=" " role="rowheader">
+                    {% if ques.status_name|lower == 'active' %}
+                    <button type="button" class="btn  btn-xs btn-round btn-success" id="statusText{{ques.id}}">Active</button>
+                    {% else %}
+                    <button type="button" class="btn  btn-xs btn-round btn-warning" id="statusText{{ques.id}}">Inactive</button>
+                      {% endif %}
+                  </td>
+                  <td class="last" role="rowheader">
+                    <div class="btn-toolbar" role="toolbar" style="display:inline-flex;">
+                      <a href="/admin/save-estimator-question/?id={{ques.id}}" type="button" data-id="{{ques.id}}"  class="btn btn-xs btn-round btn-primary edit-question"><i class="fa fa-edit" aria-hidden="true" role="presentation"></i> Edit</a>
+
+                        {% comment %}
+                        <input type="hidden" name="event_id" value="{{ques.id}}">
+                        <input type="hidden" class="status-change" name="status" value="{% if ques.status_name|lower == 'active' %}0{% else %}1{% endif %}">
+                        {% if ques.status_name|lower == 'active' %}
+                          <button type="submit" class="btn btn-xs btn-round btn-warning"><i class="fa fa-remove" aria-hidden="true" role="presentation"></i> Deactivate</button>
+                        {% else %}
+                          <button type="submit" class="btn btn-xs btn-round btn-success"><i class="fa fa-check" aria-hidden="true" role="presentation"></i> Activate</button>
+                        {% endif %}
+                        {% endcomment %}
+                    </div>
+
+                  </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr role="row">  <td class=" " role="rowheader" colspan="5">No Question available </td></tr>
+            {% endif %}
+
+          </tbody>
+        </table>
+        <nav class="pagination" aria-label="Page navigation example">
+          <input type="hidden" id="page-question-list" value="1"/>
+          <ul id="estimatorQuestionPagination">
+              {{pagination_html|safe}}
+          </ul>
+        </nav>
+      </div>
+
+
+    </div>
+         
+</div>
+
+{% endblock %}
+
+{% block js_content %}
+  <script>
+  $(function() {
+      setTimeout(function() {
+          $(".alert").hide();
+      }, 3000);
+      // hit add event type modal
+      /*if(window.location.hash && window.location.hash == '#add-event-type' ) {
+          var hash = window.location.hash;
+          window.history.pushState({}, "", window.location.href.split("#")[0]);
+          $('.' + hash.split('#')[1]).modal('show');
+      }*/
+  });
+  </script>
+  <script type="text/javascript" src="{% static 'admin/build/js/common.js' %}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.1/jquery.validate.min.js"></script>
+  <script type="text/javascript" src="{% static 'admin/build/js/estimator-question.js' %}"></script>
+  <script type="text/javascript" src="{% static 'admin/build/js/boolean-active-inactive.js' %}"></script>
+
+{% endblock %}

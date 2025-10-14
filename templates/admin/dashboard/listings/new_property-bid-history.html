@@ -1,0 +1,56 @@
+{% load static %}
+{% load dashboard_extra %}
+{% load humanize %}
+{% if new_bid_history %}
+{% for bids in new_bid_history %}
+    <tr role="row" class="{% if bids.is_forefit or bids.is_retracted %} forefit_bid {% endif %} {% if bids.highest_bid_id == bids.id %}green-row{% endif %}">
+        <td role="rowheader">
+        {{ forloop.counter|add:start_index }}
+        </td>
+        <td role="rowheader" class="bidhistory-data"> 
+        {% if bids.bidder_detail %}
+        <a href="javascript:void(0);" data-id="{{bids.id}}" class="blue-text show-detailed-info bid_total_data" onclick="show_hide_data({{bids.id}})">
+           <span {% if bids.is_retracted %} class="bidinfo" {% endif %}>{{bids.bidder_detail.first_name|default:""}}</span> {% if bids.is_retracted %} (Retracted) {% elif bids.max_bid == bids.start_bid %} (Highest Bid) {% endif %} <i class="fas fa-chevron-down" aria-hidden="true" role="presentation" id="arrowPositionBidder{{bids.id}}"></i>
+        </a>
+        
+        <p id="bidding-record-data{{bids.id}}" style="display:none">
+            {% if bids.bidder_detail %}
+                +{{bids.bidder_detail.phone_country_code|default:971}} {{bids.bidder_detail.phone_no|default:''|format_phone}}
+            {% endif %}
+            <br>
+            {% if bids.bidder_detail %}
+                <a href="mailto:{{bids.bidder_detail.email}}">{{bids.bidder_detail.email}}</a>
+            {% endif %}
+            <br>
+            {{bids.bidder_detail.ip_address|default:'-'}}
+        </p>
+        {% endif %}
+        </td>
+        <td role="rowheader">
+        AED {{bids.start_bid|intcomma|default:'0'}} {% if bids.is_forefit %}(Forfeited){% endif %}
+        </td>
+        </td>
+        <td class="convert_to_local_date_time" data-value="{{ bids.bid_time|default:'' }}">
+        {{bids.bid_time}}
+        </td>
+        <td>
+            {% if bids.is_retracted %}
+                Voided
+            {% else %}
+                {{bids.transaction_status| default:"-"}}
+            {% endif %}
+        </td>
+        
+        <!-- <td class="">
+            {% if bids.is_accept_highest_bid %}
+                <span id="accept_highest_bid">Accept Highest Bid</span>
+            {% else %}
+                -
+            {% endif %}   
+        </td> -->
+    </tr>
+{% endfor %}
+{% endif %}
+{% block js_content %}
+<script type="text/javascript" src="{% static 'admin/js/listing.js' %}?v=1.1"></script>
+{% endblock %}

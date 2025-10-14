@@ -1,0 +1,52 @@
+{% load static %}
+<div class="dashboard-header">
+        <div class="dashboard-heading">
+          <h5>
+            Management Dashboard
+
+            {% if site_detail.email_verified is None or site_detail.email_verified == "" %}
+              {% if request.session.user_type == '2' or request.session.user_type == 2 %}
+                <div class="email-verification">
+                  Please check your email and follow the instructions to verify your account. <a href="javascript:void(0)" role="button" aria-label="resend" id="email_verification" tabindex="0">Resend</a>
+                </div>
+              {% endif %}
+           {% endif %}
+          </h5>
+          
+        </div>
+        <div class="dashoard-user">
+          <a href="javascript:void(0)" data-toggle="dropdown" role="link" aria-label="admin user" title="admin user" aria-expanded="false" class="nav-link dropdown-toggle">
+            <span class="user-icon" area-label="User Icon" role="img" aria-hidden="true"></span><span class="name"> {% if request.session.first_name %}{{request.session.first_name}}{% else %} William{% endif %}</span><span class="arrow-icon" role="img" aria-hidden="true" area-label="arrow"></span>
+          </a>
+          <ul role="menu" class="dropdown-header-top author-log dropdown-menu">
+            {% if not request.session.first_time_log_in %}
+              <li><a href="/admin/user-profile/"><span class="icon user-icon" area-label="User Profile" title="User Profile"></span> User Profile</a>
+              </li>
+            
+              <li><a href="/admin/change-password/"><span class="icon pwd-icon" area-label="Change Password" title="Change Password"></span> Change Password</a>
+              </li>
+            {% endif %}
+            <li><a href="javascript:void(0)" data-toggle="modal" data-target="#logoutModal"><span class="icon logout-icon" area-label="Log Out" title="Log Out"></span> Log Out</a>
+            </li>
+          </ul>
+        </div>
+      </div><!-- End .dashboard-header -->
+
+<!-- Modal -->
+<div class="modal fade centered-modal" id="email_verification_msg" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header center">
+        <h5 class="modal-title" id="exampleModalLabel">Success</h5>
+        <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button> -->
+      </div>
+      <div class="modal-body center">
+        <p class="model_content"></p>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
